@@ -1,12 +1,11 @@
-import { Knex } from 'knex';
-import { hashPassword } from '../../utils/auth';
+const bcrypt = require('bcrypt');
 
-export async function seed(knex: Knex): Promise<void> {
+exports.seed = async function(knex) {
   await knex('users').del();
 
-  const adminPassword = await hashPassword('admin123');
-  const doctorPassword = await hashPassword('doctor123');
-  const govPassword = await hashPassword('gov123');
+  const adminPassword = await bcrypt.hash('admin123', 10);
+  const doctorPassword = await bcrypt.hash('doctor123', 10);
+  const govPassword = await bcrypt.hash('gov123', 10);
 
   await knex('users').insert([
     {
@@ -45,4 +44,4 @@ export async function seed(knex: Knex): Promise<void> {
       is_active: true
     }
   ]);
-}
+};

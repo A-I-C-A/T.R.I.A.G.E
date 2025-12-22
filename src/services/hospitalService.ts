@@ -37,12 +37,13 @@ export class HospitalService {
       .filter(p => p.status === 'in_treatment')
       .reduce((sum, p) => sum + Number(p.count), 0);
 
+    // Only count waiting patients for critical/urgent cases (not in_treatment or discharged)
     const criticalCases = patientCounts
-      .filter(p => p.priority === 'RED')
+      .filter(p => p.priority === 'RED' && p.status === 'waiting')
       .reduce((sum, p) => sum + Number(p.count), 0);
 
     const urgentCases = patientCounts
-      .filter(p => p.priority === 'YELLOW')
+      .filter(p => p.priority === 'YELLOW' && p.status === 'waiting')
       .reduce((sum, p) => sum + Number(p.count), 0);
 
     const staffAvailability = await db('staff_availability')

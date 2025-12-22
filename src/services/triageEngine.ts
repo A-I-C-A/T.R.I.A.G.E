@@ -111,7 +111,7 @@ export class TriageEngine {
         score += 20;
         reasons.push(`Abnormal blood pressure: ${vitals.systolicBP}/${vitals.diastolicBP} mmHg`);
       } else if (vitals.systolicBP > 140) {
-        score += 10;
+        score += 12;
         reasons.push(`Elevated blood pressure: ${vitals.systolicBP}/${vitals.diastolicBP} mmHg`);
       }
     }
@@ -187,9 +187,9 @@ export class TriageEngine {
         reasons.push(`Urgent symptom: ${symptom.symptom} (${symptom.severity})`);
       } else {
         if (symptom.severity === 'critical') score += 20;
-        else if (symptom.severity === 'severe') score += 12;
-        else if (symptom.severity === 'moderate') score += 6;
-        else score += 2;
+        else if (symptom.severity === 'severe') score += 15;
+        else if (symptom.severity === 'moderate') score += 8;
+        else score += 3;
 
         if (symptom.severity !== 'mild') {
           reasons.push(`${symptom.severity} ${symptom.symptom}`);
@@ -211,9 +211,12 @@ export class TriageEngine {
       if (age < 1) {
         score += 15;
         reasons.push('Infant - high risk');
-      } else if (age < 5 || age > 75) {
+      } else if (age >= 75) {
         score += 10;
         reasons.push(`Age-related risk: ${age} years`);
+      } else if (age < 5) {
+        score += 8;
+        reasons.push(`Young child: ${age} years`);
       } else if (age > 65) {
         score += 5;
         reasons.push(`Elderly patient: ${age} years`);

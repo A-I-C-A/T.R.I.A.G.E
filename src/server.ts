@@ -4,7 +4,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import dotenv from 'dotenv';
-import { connectRedis } from './config/redis';
 import { initializeWebSocket } from './websocket/handler';
 import { errorHandler } from './middleware/errorHandler';
 import { SchedulerService } from './services/schedulerService';
@@ -40,8 +39,8 @@ app.use(errorHandler);
 
 const startServer = async () => {
   try {
-    await connectRedis();
-    logger.info('Redis connected');
+    // Redis disabled - not needed for core functionality
+    console.log('ℹ️  Redis disabled - running without cache');
 
     initializeWebSocket(server);
     logger.info('WebSocket initialized');
@@ -52,6 +51,8 @@ const startServer = async () => {
     server.listen(PORT, () => {
       logger.info(`🏥 TRIAGELOCK Backend running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log('\n✅ Server ready! You can now test the API');
+      console.log(`📍 Health check: http://localhost:${PORT}/health\n`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

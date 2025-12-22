@@ -1,6 +1,4 @@
-import { Knex } from 'knex';
-
-export async function up(knex: Knex): Promise<void> {
+exports.up = async function(knex) {
   await knex.schema.createTable('hospitals', (table) => {
     table.increments('id').primary();
     table.string('name', 255).notNullable();
@@ -42,8 +40,6 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('waiting_time_minutes').defaultTo(0);
     table.boolean('escalated').defaultTo(false);
     table.timestamps(true, true);
-    table.index(['hospital_id', 'status']);
-    table.index(['priority', 'arrival_time']);
   });
 
   await knex.schema.createTable('vital_signs', (table) => {
@@ -57,7 +53,6 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('oxygen_saturation');
     table.enum('consciousness', ['alert', 'verbal', 'pain', 'unresponsive']);
     table.timestamp('recorded_at').notNullable();
-    table.index(['patient_id', 'recorded_at']);
   });
 
   await knex.schema.createTable('symptoms', (table) => {
@@ -108,7 +103,6 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('acknowledged_by').unsigned().references('id').inTable('users');
     table.timestamp('acknowledged_at');
     table.timestamps(true, true);
-    table.index(['hospital_id', 'acknowledged', 'created_at']);
   });
 
   await knex.schema.createTable('incident_reports', (table) => {
@@ -124,13 +118,12 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('escalation_count').defaultTo(0);
     table.integer('peak_load').defaultTo(0);
     table.timestamp('peak_time');
-    table.json('hourly_stats');
+    table.text('hourly_stats');
     table.timestamps(true, true);
-    table.index(['hospital_id', 'incident_date']);
   });
-}
+};
 
-export async function down(knex: Knex): Promise<void> {
+exports.down = async function(knex) {
   await knex.schema.dropTableIfExists('incident_reports');
   await knex.schema.dropTableIfExists('alerts');
   await knex.schema.dropTableIfExists('staff_availability');
@@ -141,4 +134,4 @@ export async function down(knex: Knex): Promise<void> {
   await knex.schema.dropTableIfExists('patients');
   await knex.schema.dropTableIfExists('users');
   await knex.schema.dropTableIfExists('hospitals');
-}
+};

@@ -1,6 +1,4 @@
-import { Knex } from 'knex';
-
-export async function seed(knex: Knex): Promise<void> {
+exports.seed = async function(knex) {
   await knex('staff_availability').del();
 
   await knex('staff_availability').insert([
@@ -47,4 +45,4 @@ export async function seed(knex: Knex): Promise<void> {
       updated_at: new Date()
     }
   ]);
-}
+};

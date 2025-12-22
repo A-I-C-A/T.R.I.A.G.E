@@ -1,4 +1,4 @@
-import cron from 'node-cron';
+import * as cron from 'node-cron';
 import db from '../config/database';
 import { PatientService } from '../services/patientService';
 import { HospitalService } from '../services/hospitalService';

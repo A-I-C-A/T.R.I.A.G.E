@@ -1,6 +1,4 @@
-import { Knex } from 'knex';
-
-export async function seed(knex: Knex): Promise<void> {
+exports.seed = async function(knex) {
   await knex('hospitals').del();
 
   await knex('hospitals').insert([
@@ -38,4 +36,4 @@ export async function seed(knex: Knex): Promise<void> {
       is_active: true
     }
   ]);
-}
+};

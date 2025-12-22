@@ -18,7 +18,10 @@ export class PatientService {
     const trx = await db.transaction();
 
     try {
-      const triageResult = TriageEngine.calculatePriority(input.triageInput);
+      const triageResult = TriageEngine.calculatePriority({
+        ...input.triageInput,
+        age: input.age
+      });
 
       const [patient] = await trx('patients')
         .insert({
