@@ -177,7 +177,7 @@ export default function AdminAuth() {
                   <p className="text-sm text-red-500">{error}</p>
                 )}
               </CardContent>
-              <CardFooter className="flex-col gap-4 pb-6">
+              <CardFooter className="flex-col gap-4 pb-6 pt-6">
                 <Button
                   type="submit"
                   className="w-full bg-triage-red hover:bg-triage-red/90"
