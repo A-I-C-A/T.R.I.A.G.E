@@ -4,6 +4,7 @@
   "description": "Rule-based Emergency Triage & Load Management System",
   "main": "dist/server.js",
   "scripts": {
+    "postinstall": "cd client && npm install",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:client\"",
     "dev:backend": "nodemon src/server.ts",
     "dev:client": "cd client && npm run dev",
