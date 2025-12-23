@@ -516,10 +516,10 @@ export default function NurseView() {
             >
               <div className="text-center mb-8">
                 <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground mb-4">Triage Assessment Complete</h2>
-                <div className={`inline-flex items-center justify-center w-48 h-48 rounded-full border-8 text-5xl font-black tracking-tighter mb-6 shadow-[0_0_40px_rgba(0,0,0,0.2)]
-                  ${triageResult.priority === 'RED' ? 'border-triage-red bg-triage-red text-white animate-pulse' : 
-                    triageResult.priority === 'YELLOW' ? 'border-triage-yellow bg-triage-yellow text-black' : 
-                    'border-triage-green bg-triage-green text-white'}`}
+                <div className={`inline-flex items-center justify-center w-48 h-48 rounded-full border-8 text-5xl font-black tracking-tighter mb-6 animate-pulse
+                  ${triageResult.priority === 'RED' ? 'border-triage-red bg-triage-red text-white shadow-[0_0_60px_rgba(220,38,38,0.8)]' : 
+                    triageResult.priority === 'YELLOW' ? 'border-triage-yellow bg-triage-yellow text-black shadow-[0_0_60px_rgba(251,191,36,0.8)]' : 
+                    'border-triage-green bg-triage-green text-white shadow-[0_0_60px_rgba(16,185,129,0.8)]'}`}
                 >
                   {triageResult.priority}
                 </div>
