@@ -61,6 +61,7 @@ export default function NurseView() {
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [selectedRisks, setSelectedRisks] = useState<string[]>([]);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("General");
+  const [clinicalNotes, setClinicalNotes] = useState("");
   const [triageResult, setTriageResult] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [queueCount, setQueueCount] = useState(0);
@@ -378,6 +379,7 @@ export default function NurseView() {
       setSelectedSymptoms([]);
       setSelectedRisks([]);
       setSelectedSpecialty("General");
+      setClinicalNotes("");
     } catch (error: any) {
       console.error("Error creating patient:", error);
       toast.error(error.response?.data?.error || "Failed to create patient");
@@ -488,6 +490,8 @@ export default function NurseView() {
             <textarea 
               className="w-full h-full min-h-[200px] bg-background/50 border border-input rounded-md p-4 resize-none focus:outline-none focus:ring-2 focus:ring-ring"
               placeholder="Enter chief complaint and observations..."
+              value={clinicalNotes}
+              onChange={(e) => setClinicalNotes(e.target.value)}
             />
           </div>
         </div>
