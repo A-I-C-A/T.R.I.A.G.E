@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Heart, 
@@ -63,10 +63,33 @@ export default function NurseView() {
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("General");
   const [triageResult, setTriageResult] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [queueCount, setQueueCount] = useState(0);
+
+  // Fetch queue count
+  useEffect(() => {
+    const fetchQueue = async () => {
+      try {
+        const response = await patientAPI.getPatients({ status: 'waiting' });
+        setQueueCount(response.data.length);
+      } catch (error) {
+        console.error("Failed to fetch queue:", error);
+      }
+    };
+    fetchQueue();
+  }, [triageResult]); // Refetch when triage result changes
 
   const handleVitalChange = (key: string, value: string) => {
     setVitals(prev => ({ ...prev, [key]: value }));
   };
+
+  const handleAgeChange = (value: string) => {
+    const age = Number(value);
+    if (value === "" || (age >= 0 && age <= 150)) {
+      setPatientAge(value);
+    }
+  };
+
+  const isAgeInvalid = patientAge !== "" && (Number(patientAge) < 0 || Number(patientAge) > 150);
 
   const toggleSymptom = (symptom: string) => {
     setSelectedSymptoms(prev => 
@@ -193,7 +216,7 @@ export default function NurseView() {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 px-4 py-2 bg-secondary/50 rounded-full border border-border/50">
             <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-mono font-medium">QUEUE: 12</span>
+            <span className="text-sm font-mono font-medium">QUEUE: {queueCount}</span>
             <span className="w-2 h-2 rounded-full bg-triage-green animate-pulse ml-2" />
           </div>
           <ThemeToggle />
@@ -228,12 +251,25 @@ export default function NurseView() {
                 <div className="space-y-2">
                   <Label className="text-muted-foreground uppercase text-xs tracking-widest">Age</Label>
                   <Input 
-                    className="h-12 text-lg bg-background/50" 
+                    className={`h-12 text-lg ${
+                      isAgeInvalid ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-background/50'
+                    }`}
                     type="number" 
-                    placeholder="00"
+                    placeholder="0-150"
                     value={patientAge}
-                    onChange={(e) => setPatientAge(e.target.value)}
+                    onChange={(e) => handleAgeChange(e.target.value)}
+                    min={0}
+                    max={150}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.getElementById('heart-rate-input')?.focus();
+                      }
+                    }}
                   />
+                  {isAgeInvalid && (
+                    <p className="text-xs text-red-500">Age must be between 0-150</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label className="text-muted-foreground uppercase text-xs tracking-widest">Gender</Label>
@@ -281,6 +317,9 @@ export default function NurseView() {
                 value={vitals.hr}
                 onChange={(v: string) => handleVitalChange("hr", v)}
                 min={60} max={100}
+                normalRange="60-100"
+                id="heart-rate-input"
+                onEnter={() => document.getElementById('resp-rate-input')?.focus()}
               />
               <VitalInput 
                 label="Resp. Rate" 
@@ -289,6 +328,9 @@ export default function NurseView() {
                 value={vitals.rr}
                 onChange={(v: string) => handleVitalChange("rr", v)}
                 min={12} max={20}
+                normalRange="12-20"
+                id="resp-rate-input"
+                onEnter={() => document.getElementById('spo2-input')?.focus()}
               />
               <VitalInput 
                 label="SpO2" 
@@ -297,21 +339,43 @@ export default function NurseView() {
                 value={vitals.spo2}
                 onChange={(v: string) => handleVitalChange("spo2", v)}
                 min={95} max={100}
+                normalRange="95-100"
+                id="spo2-input"
+                onEnter={() => document.getElementById('bp-sys-input')?.focus()}
               />
               <div className="col-span-1 space-y-2">
                 <Label className="text-muted-foreground uppercase text-xs tracking-widest">Blood Pressure</Label>
+                <div className="text-xs text-muted-foreground mb-1">Normal: 90-120 / 60-80</div>
                 <div className="flex gap-2">
                   <Input 
+                    id="bp-sys-input"
                     placeholder="SYS" 
-                    className="h-16 text-2xl text-center font-mono bg-card/80"
+                    className={`h-16 text-2xl text-center font-mono ${
+                      vitals.bpSys && Number(vitals.bpSys) < 0 ? 'bg-red-500/20 border-red-500' : 'bg-card/80'
+                    }`}
                     value={vitals.bpSys}
                     onChange={(e) => handleVitalChange("bpSys", e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.getElementById('bp-dia-input')?.focus();
+                      }
+                    }}
                   />
                   <Input 
+                    id="bp-dia-input"
                     placeholder="DIA" 
-                    className="h-16 text-2xl text-center font-mono bg-card/80"
+                    className={`h-16 text-2xl text-center font-mono ${
+                      vitals.bpDia && Number(vitals.bpDia) < 0 ? 'bg-red-500/20 border-red-500' : 'bg-card/80'
+                    }`}
                     value={vitals.bpDia}
                     onChange={(e) => handleVitalChange("bpDia", e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.getElementById('temp-input')?.focus();
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -322,6 +386,9 @@ export default function NurseView() {
                 value={vitals.temp}
                 onChange={(v: string) => handleVitalChange("temp", v)}
                 min={36.5} max={37.5}
+                normalRange="36.5-37.5"
+                id="temp-input"
+                onEnter={() => {}}
               />
               <div className="space-y-2">
                 <Label className="text-muted-foreground uppercase text-xs tracking-widest flex items-center gap-2">
@@ -450,9 +517,9 @@ export default function NurseView() {
               <div className="text-center mb-8">
                 <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground mb-4">Triage Assessment Complete</h2>
                 <div className={`inline-flex items-center justify-center w-48 h-48 rounded-full border-8 text-5xl font-black tracking-tighter mb-6 shadow-[0_0_40px_rgba(0,0,0,0.2)]
-                  ${triageResult.priority === 'RED' ? 'border-triage-red bg-triage-red/10 text-triage-red animate-pulse' : 
-                    triageResult.priority === 'YELLOW' ? 'border-triage-yellow bg-triage-yellow/10 text-triage-yellow' : 
-                    'border-triage-green bg-triage-green/10 text-triage-green'}`}
+                  ${triageResult.priority === 'RED' ? 'border-triage-red bg-triage-red text-white animate-pulse' : 
+                    triageResult.priority === 'YELLOW' ? 'border-triage-yellow bg-triage-yellow text-black' : 
+                    'border-triage-green bg-triage-green text-white'}`}
                 >
                   {triageResult.priority}
                 </div>
@@ -513,24 +580,36 @@ export default function NurseView() {
   );
 }
 
-function VitalInput({ label, unit, icon: Icon, value, onChange, min, max }: any) {
+function VitalInput({ label, unit, icon: Icon, value, onChange, min, max, normalRange, id, onEnter }: any) {
   const numVal = Number(value);
   const isWarning = value && (numVal < min || numVal > max);
+  const isNegative = value && numVal < 0;
   
   return (
     <div className="space-y-2">
       <Label className="text-muted-foreground uppercase text-xs tracking-widest flex items-center gap-2">
         <Icon className="w-3 h-3" /> {label}
       </Label>
+      {normalRange && (
+        <div className="text-xs text-muted-foreground">Normal: {normalRange}</div>
+      )}
       <div className="relative">
         <Input 
+          id={id}
           type="number"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={`h-16 text-2xl text-center font-mono transition-colors ${
-            isWarning ? "bg-triage-red/10 border-triage-red text-triage-red" : "bg-card/80"
+            isNegative ? "bg-red-500/20 border-red-500" :
+            isWarning ? "bg-yellow-500/10 border-yellow-500" : "bg-card/80"
           }`}
           placeholder="--"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onEnter?.();
+            }
+          }}
         />
         <span className="absolute right-3 bottom-2 text-xs text-muted-foreground font-mono">{unit}</span>
       </div>
