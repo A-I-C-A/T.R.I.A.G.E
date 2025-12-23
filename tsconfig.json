@@ -15,8 +15,7 @@
     "declarationMap": false,
     "sourceMap": true,
     "removeComments": true,
-    "noImplicitAny": false,
-    "allowJs": true
+    "noImplicitAny": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "knexfile.js"],
