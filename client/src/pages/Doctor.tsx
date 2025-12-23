@@ -41,7 +41,12 @@ export default function DoctorView() {
         status: 'waiting,in-treatment',
         hospitalId: user?.hospitalId 
       });
-      setQueue(response.data.patients || []);
+      // Normalize doctorId field
+      const normalizedPatients = (response.data.patients || []).map((p: any) => ({
+        ...p,
+        doctorId: p.doctor_id || p.doctorId
+      }));
+      setQueue(normalizedPatients);
     } catch (error: any) {
       console.error('Error loading patients:', error);
       toast.error('Failed to load patient queue');
@@ -81,23 +86,31 @@ export default function DoctorView() {
   };
 
   const handlePatientUpdated = (updatedPatient: any) => {
+    const normalized = {
+      ...updatedPatient,
+      doctorId: updatedPatient.doctor_id || updatedPatient.doctorId
+    };
     setQueue(prev => prev.map(p => 
-      p.id === updatedPatient.id ? updatedPatient : p
+      p.id === normalized.id ? normalized : p
     ));
-    if (selectedPatient?.id === updatedPatient.id) {
-      setSelectedPatient(updatedPatient);
+    if (selectedPatient?.id === normalized.id) {
+      setSelectedPatient(normalized);
     }
   };
 
   const handleClaim = async (patientId: string) => {
     try {
       const response = await patientAPI.assignDoctor(patientId, user?.id || '');
+      const updatedPatient = {
+        ...response.data.patient,
+        doctorId: response.data.patient.doctor_id || response.data.patient.doctorId
+      };
       setQueue(queue.map(p => 
-        p.id === patientId ? response.data.patient : p
+        p.id === patientId ? updatedPatient : p
       ));
       toast.success("Patient claimed successfully");
       if (selectedPatient?.id === patientId) {
-        setSelectedPatient(response.data.patient);
+        setSelectedPatient(updatedPatient);
       }
     } catch (error: any) {
       console.error('Error claiming patient:', error);
