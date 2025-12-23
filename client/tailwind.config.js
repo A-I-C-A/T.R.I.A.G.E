@@ -53,6 +53,12 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+        triage: {
+          red: "#DC2626",
+          yellow: "#FBBF24",
+          green: "#10B981",
+          blue: "#3B82F6",
+        },
       },
     },
   },
