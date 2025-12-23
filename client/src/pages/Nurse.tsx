@@ -75,8 +75,22 @@ export default function NurseView() {
         console.error("Failed to fetch queue:", error);
       }
     };
+    
     fetchQueue();
-  }, [triageResult]); // Refetch when triage result changes
+    
+    // Listen for WebSocket events to update queue
+    const handlePatientUpdate = () => {
+      fetchQueue();
+    };
+    
+    wsService.on('patient-created', handlePatientUpdate);
+    wsService.on('patient-status-updated', handlePatientUpdate);
+    
+    return () => {
+      wsService.off('patient-created', handlePatientUpdate);
+      wsService.off('patient-status-updated', handlePatientUpdate);
+    };
+  }, []); // Run once on mount and listen to WebSocket events
 
   const handleVitalChange = (key: string, value: string) => {
     setVitals(prev => ({ ...prev, [key]: value }));
