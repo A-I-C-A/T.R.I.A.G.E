@@ -122,17 +122,195 @@ export default function NurseView() {
   };
 
   const calculateTriage = () => {
-    // Simple triage calculation
+    // Comprehensive triage calculation based on Canadian Triage and Acuity Scale (CTAS)
     let score = 0;
     const reasons = [];
+    const age = Number(patientAge);
     
-    if (Number(vitals.hr) > 120 || Number(vitals.hr) < 40) { score += 2; reasons.push("Abnormal Heart Rate"); }
-    if (Number(vitals.spo2) < 90) { score += 3; reasons.push("Critical SpO2"); }
-    if (selectedSymptoms.includes("Chest Pain")) { score += 2; reasons.push("Chest Pain Reported"); }
+    // === CRITICAL VITAL SIGNS (Immediate Red Flags) ===
     
+    // Consciousness Level (AVPU) - Most Critical
+    if (vitals.avpu === "Unresponsive") {
+      score += 5;
+      reasons.push("Patient Unresponsive - Critical");
+    } else if (vitals.avpu === "Pain") {
+      score += 4;
+      reasons.push("Responds Only to Pain - Severe");
+    } else if (vitals.avpu === "Voice") {
+      score += 2;
+      reasons.push("Altered Consciousness");
+    }
+    
+    // Oxygen Saturation - Critical
+    if (Number(vitals.spo2) < 85) {
+      score += 5;
+      reasons.push("Critical SpO2 (<85%) - Severe Hypoxia");
+    } else if (Number(vitals.spo2) < 90) {
+      score += 3;
+      reasons.push("Low SpO2 (<90%) - Hypoxia");
+    } else if (Number(vitals.spo2) < 94) {
+      score += 1;
+      reasons.push("Borderline SpO2 (<94%)");
+    }
+    
+    // Respiratory Rate - Critical
+    if (Number(vitals.rr) < 8 || Number(vitals.rr) > 30) {
+      score += 4;
+      reasons.push("Critical Respiratory Rate");
+    } else if (Number(vitals.rr) < 10 || Number(vitals.rr) > 24) {
+      score += 2;
+      reasons.push("Abnormal Respiratory Rate");
+    }
+    
+    // Heart Rate - Critical
+    if (Number(vitals.hr) < 40 || Number(vitals.hr) > 140) {
+      score += 4;
+      reasons.push("Critical Heart Rate");
+    } else if (Number(vitals.hr) < 50 || Number(vitals.hr) > 120) {
+      score += 2;
+      reasons.push("Abnormal Heart Rate");
+    }
+    
+    // Blood Pressure - Critical
+    const systolic = Number(vitals.bpSys);
+    const diastolic = Number(vitals.bpDia);
+    
+    if (systolic < 80 || systolic > 200) {
+      score += 4;
+      reasons.push("Critical Blood Pressure - Systolic");
+    } else if (systolic < 90 || systolic > 160) {
+      score += 2;
+      reasons.push("Abnormal Blood Pressure - Systolic");
+    }
+    
+    if (diastolic < 50 || diastolic > 120) {
+      score += 3;
+      reasons.push("Critical Blood Pressure - Diastolic");
+    } else if (diastolic < 60 || diastolic > 100) {
+      score += 1;
+      reasons.push("Elevated Blood Pressure - Diastolic");
+    }
+    
+    // Temperature - Critical
+    if (Number(vitals.temp) < 35 || Number(vitals.temp) > 40) {
+      score += 3;
+      reasons.push("Critical Temperature (Hypothermia/High Fever)");
+    } else if (Number(vitals.temp) < 36 || Number(vitals.temp) > 38.5) {
+      score += 1;
+      reasons.push("Abnormal Temperature");
+    }
+    
+    // === HIGH-RISK SYMPTOMS ===
+    
+    if (selectedSymptoms.includes("Chest Pain")) {
+      score += 3;
+      reasons.push("Chest Pain - Cardiac Risk");
+    }
+    
+    if (selectedSymptoms.includes("Shortness of Breath")) {
+      score += 3;
+      reasons.push("Shortness of Breath - Respiratory Distress");
+    }
+    
+    if (selectedSymptoms.includes("Bleeding")) {
+      score += 3;
+      reasons.push("Active Bleeding");
+    }
+    
+    if (selectedSymptoms.includes("Trauma")) {
+      score += 3;
+      reasons.push("Traumatic Injury");
+    }
+    
+    if (selectedSymptoms.includes("Abdominal Pain")) {
+      score += 2;
+      reasons.push("Abdominal Pain - Possible Acute Abdomen");
+    }
+    
+    if (selectedSymptoms.includes("Headache")) {
+      score += 1;
+      reasons.push("Headache");
+    }
+    
+    if (selectedSymptoms.includes("Fever")) {
+      score += 1;
+      reasons.push("Fever Present");
+    }
+    
+    if (selectedSymptoms.includes("Dizziness")) {
+      score += 1;
+      reasons.push("Dizziness - Fall Risk");
+    }
+    
+    if (selectedSymptoms.includes("Nausea") || selectedSymptoms.includes("Vomiting")) {
+      score += 1;
+      reasons.push("GI Symptoms");
+    }
+    
+    // === RISK FACTORS & COMORBIDITIES ===
+    
+    if (selectedRisks.includes("Heart Disease")) {
+      score += 2;
+      reasons.push("Pre-existing Heart Disease");
+    }
+    
+    if (selectedRisks.includes("Asthma") && selectedSymptoms.includes("Shortness of Breath")) {
+      score += 2;
+      reasons.push("Asthma with Respiratory Symptoms");
+    }
+    
+    if (selectedRisks.includes("Immunocompromised")) {
+      score += 2;
+      reasons.push("Immunocompromised Patient");
+    }
+    
+    if (selectedRisks.includes("Pregnancy")) {
+      score += 2;
+      reasons.push("Pregnant Patient - Special Considerations");
+    }
+    
+    if (selectedRisks.includes("Recent Surgery")) {
+      score += 1;
+      reasons.push("Post-Surgical Patient");
+    }
+    
+    if (selectedRisks.includes("Diabetes")) {
+      score += 1;
+      reasons.push("Diabetic Patient");
+    }
+    
+    if (selectedRisks.includes("Hypertension")) {
+      score += 1;
+      reasons.push("Hypertensive Patient");
+    }
+    
+    // === AGE CONSIDERATIONS ===
+    
+    if (age >= 65 || selectedRisks.includes("Elderly (>65)")) {
+      score += 1;
+      reasons.push("Elderly Patient - Higher Risk");
+    }
+    
+    if (age < 2) {
+      score += 2;
+      reasons.push("Infant - Requires Immediate Assessment");
+    } else if (age < 12) {
+      score += 1;
+      reasons.push("Pediatric Patient");
+    }
+    
+    // === PRIORITY ASSIGNMENT (Modified CTAS Scale) ===
     let priority = "GREEN";
-    if (score >= 5) priority = "RED";
-    else if (score >= 2) priority = "YELLOW";
+    
+    if (score >= 10) {
+      priority = "RED"; // Resuscitation / Immediate
+    } else if (score >= 6) {
+      priority = "YELLOW"; // Emergent / Very Urgent
+    } else if (score >= 3) {
+      priority = "YELLOW"; // Urgent
+    } else {
+      priority = "GREEN"; // Less Urgent / Non-Urgent
+    }
 
     setTriageResult({
       priority,
