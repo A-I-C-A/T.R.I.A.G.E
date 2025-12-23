@@ -1,5 +1,5 @@
 const knex = require('knex');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 const knexConfig = require('./knexfile');
