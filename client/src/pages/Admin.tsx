@@ -198,7 +198,58 @@ export default function AdminPanel() {
   };
 
   const handleExportPDF = () => {
-    toast.info('PDF export feature coming soon');
+    try {
+      // Generate CSV data from report data
+      const csvData = generateReportCSV();
+      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `hospital-analytics-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success('Analytics report exported successfully');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export report');
+    }
+  };
+
+  const generateReportCSV = () => {
+    const lines = [];
+    
+    // Header
+    lines.push('Hospital Analytics Report');
+    lines.push(`Generated: ${format(new Date(), 'yyyy-MM-dd HH:mm:ss')}`);
+    lines.push('');
+    
+    // Summary Stats
+    lines.push('Summary Statistics');
+    lines.push(`Total Patients,${totalPatients}`);
+    lines.push(`Average Wait Time (min),${avgWaitTime}`);
+    lines.push(`Bed Occupancy (%),${bedOccupancy}`);
+    lines.push('');
+    
+    // Triage Distribution
+    lines.push('Triage Distribution');
+    lines.push('Priority,Count');
+    triageDistribution.forEach(t => {
+      lines.push(`${t.name},${t.value}`);
+    });
+    lines.push('');
+    
+    // Hourly Admissions
+    lines.push('Hourly Admissions');
+    lines.push('Hour,Patients');
+    hourlyAdmissions.forEach(h => {
+      lines.push(`${h.hour},${h.patients}`);
+    });
+    
+    return lines.join('\n');
   };
 
   if (isLoading && !hospitalStats) {

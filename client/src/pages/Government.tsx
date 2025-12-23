@@ -103,6 +103,57 @@ export default function GovernmentView() {
     ));
   };
 
+  const handleExportData = () => {
+    try {
+      const csvData = generateGovernmentCSV();
+      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `government-health-overview-${timestamp}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success('Health overview exported successfully');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export data');
+    }
+  };
+
+  const generateGovernmentCSV = () => {
+    const lines = [];
+    const now = new Date();
+    
+    // Header
+    lines.push('Government Health Dashboard - Hospital Network Overview');
+    lines.push(`Generated: ${now.toLocaleString()}`);
+    lines.push('');
+    
+    // Summary
+    if (dashboardData) {
+      lines.push('Network Summary');
+      lines.push(`Total Hospitals,${dashboardData.total_hospitals || hospitals.length}`);
+      lines.push(`Total Patients,${dashboardData.total_patients || 0}`);
+      lines.push(`Average Wait Time,${dashboardData.average_wait_time || 'N/A'}`);
+      lines.push(`Critical Alerts,${dashboardData.critical_alerts || 0}`);
+      lines.push('');
+    }
+    
+    // Hospital Details
+    lines.push('Hospital Metrics');
+    lines.push('Hospital Name,Total Beds,Available Beds,Occupancy %,Waiting Patients,Status');
+    hospitals.forEach(h => {
+      lines.push(`${h.name},${h.total_beds},${h.available_beds},${h.occupancy}%,${h.waiting_patients || 0},${h.status}`);
+    });
+    
+    return lines.join('\n');
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -319,7 +370,7 @@ export default function GovernmentView() {
               <CardTitle>Hospital Metrics</CardTitle>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm"><Filter className="w-4 h-4 mr-2" /> Filter</Button>
-                <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-2" /> Export</Button>
+                <Button variant="outline" size="sm" onClick={handleExportData}><Download className="w-4 h-4 mr-2" /> Export</Button>
               </div>
             </CardHeader>
             <CardContent>
