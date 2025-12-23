@@ -11,7 +11,7 @@
     "build": "npm run build:backend && npm run build:client",
     "build:backend": "tsc",
     "build:client": "cd client && npm run build",
-    "start": "npm run migrate && NODE_ENV=production node dist/server.js",
+    "start": "npm run migrate && npm run seed && NODE_ENV=production node dist/server.js",
     "populate": "node populate-database.js",
     "test": "jest",
     "migrate": "knex migrate:latest",
