@@ -33,6 +33,7 @@ export interface TriageResult {
   score: number;
   reasons: string[];
   recommendedActions: string[];
+  recommendedSpecialty?: string;
 }
 
 export class TriageEngine {
@@ -52,6 +53,8 @@ export class TriageEngine {
     score = vitalScore + symptomScore + riskScore;
 
     let priority: Priority;
+    let recommendedSpecialty = this.determineSpecialty(input);
+    
     if (score >= this.CRITICAL_THRESHOLD) {
       priority = 'RED';
       recommendedActions.push('IMMEDIATE medical intervention required');
@@ -71,7 +74,33 @@ export class TriageEngine {
       recommendedActions.push('Self-care advice applicable');
     }
 
-    return { priority, score, reasons, recommendedActions };
+    return { priority, score, reasons, recommendedActions, recommendedSpecialty };
+  }
+
+  private static determineSpecialty(input: TriageInput): string {
+    const symptoms = input.symptoms.map(s => s.symptom.toLowerCase());
+    
+    // Cardiology
+    if (symptoms.some(s => s.includes('chest') || s.includes('heart'))) {
+      return 'Cardiology';
+    }
+    
+    // Pulmonology
+    if (symptoms.some(s => s.includes('breath') || s.includes('respiratory'))) {
+      return 'Pulmonology';
+    }
+    
+    // Neurology
+    if (symptoms.some(s => s.includes('head') || s.includes('dizz') || s.includes('seizure'))) {
+      return 'Neurology';
+    }
+    
+    // Trauma
+    if (symptoms.some(s => s.includes('trauma') || s.includes('bleed') || s.includes('fracture'))) {
+      return 'Trauma';
+    }
+    
+    return 'General';
   }
 
   private static evaluateVitalSigns(vitals: VitalSigns, reasons: string[]): number {

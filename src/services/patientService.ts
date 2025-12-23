@@ -32,6 +32,7 @@ export class PatientService {
           gender: input.gender,
           contact: input.contact,
           priority: triageResult.priority,
+          recommended_specialty: triageResult.recommendedSpecialty || 'General',
           status: 'waiting',
           arrival_time: new Date(),
           triage_time: new Date()
@@ -169,9 +170,12 @@ export class PatientService {
     }
   }
 
-  static async getQueue(hospitalId: number, status: string = 'waiting') {
+  static async getQueue(hospitalId: number, statuses: string | string[] = 'waiting') {
+    const statusArray = Array.isArray(statuses) ? statuses : [statuses];
+    
     const patients = await db('patients')
-      .where({ hospital_id: hospitalId, status })
+      .where({ hospital_id: hospitalId })
+      .whereIn('status', statusArray)
       .orderByRaw(`
         CASE priority
           WHEN 'RED' THEN 1

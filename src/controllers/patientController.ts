@@ -48,7 +48,8 @@ export class PatientController {
       }
 
       const status = (req.query.status as string) || 'waiting';
-      const queue = await PatientService.getQueue(hospitalId, status);
+      const statuses = status.split(',').map(s => s.trim());
+      const queue = await PatientService.getQueue(hospitalId, statuses);
 
       res.json(queue);
     } catch (error) {
