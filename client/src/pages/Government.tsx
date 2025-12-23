@@ -245,12 +245,36 @@ export default function GovernmentView() {
                         repeat: Infinity,
                         ease: "easeInOut",
                       }}
-                      className={`absolute -inset-4 rounded-full ${getStatusColor(hospital.status)} opacity-40`}
+                      className={`absolute -inset-4 rounded-full border-2 ${
+                        hospital.status === "CRITICAL" 
+                          ? "bg-triage-red/40 border-triage-red" 
+                          : "bg-triage-yellow/40 border-triage-yellow"
+                      }`}
+                    />
+                  )}
+                  
+                  {/* Pulsing ring for NORMAL status - gentle green pulse */}
+                  {hospital.status === "NORMAL" && (
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.5, 1],
+                        opacity: [0.4, 0, 0.4],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                      className="absolute -inset-4 rounded-full bg-triage-green/30 border-2 border-triage-green"
                     />
                   )}
                   
                   {/* Marker */}
-                  <div className={`relative w-4 h-4 rounded-full ${getStatusColor(hospital.status || 'NORMAL')} shadow-lg border-2 border-background hover:scale-150 transition-transform`}>
+                  <div className={`relative w-4 h-4 rounded-full shadow-lg border-2 border-background hover:scale-150 transition-transform ${
+                    hospital.status === "CRITICAL" ? "bg-triage-red shadow-triage-red/50" :
+                    hospital.status === "BUSY" ? "bg-triage-yellow shadow-triage-yellow/50" :
+                    "bg-triage-green shadow-triage-green/50"
+                  }`}>
                     {hospital.surge && (
                       <motion.div
                         animate={{ rotate: 360 }}
