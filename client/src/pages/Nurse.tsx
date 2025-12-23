@@ -255,7 +255,7 @@ export default function NurseView() {
                       isAgeInvalid ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-background/50'
                     }`}
                     type="number" 
-                    placeholder="0-150"
+                    placeholder="Age"
                     value={patientAge}
                     onChange={(e) => handleAgeChange(e.target.value)}
                     min={0}
@@ -350,11 +350,14 @@ export default function NurseView() {
                   <Input 
                     id="bp-sys-input"
                     placeholder="SYS" 
+                    type="number"
                     className={`h-16 text-2xl text-center font-mono ${
-                      vitals.bpSys && Number(vitals.bpSys) < 0 ? 'bg-red-500/20 border-red-500' : 'bg-card/80'
+                      vitals.bpSys && Number(vitals.bpSys) < 0 ? 'bg-red-500/20 border-red-500' :
+                      vitals.bpSys && (Number(vitals.bpSys) < 90 || Number(vitals.bpSys) > 120) ? 'bg-yellow-500/20 border-yellow-500' : 'bg-card/80'
                     }`}
                     value={vitals.bpSys}
                     onChange={(e) => handleVitalChange("bpSys", e.target.value)}
+                    min={0}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -365,11 +368,14 @@ export default function NurseView() {
                   <Input 
                     id="bp-dia-input"
                     placeholder="DIA" 
+                    type="number"
                     className={`h-16 text-2xl text-center font-mono ${
-                      vitals.bpDia && Number(vitals.bpDia) < 0 ? 'bg-red-500/20 border-red-500' : 'bg-card/80'
+                      vitals.bpDia && Number(vitals.bpDia) < 0 ? 'bg-red-500/20 border-red-500' :
+                      vitals.bpDia && (Number(vitals.bpDia) < 60 || Number(vitals.bpDia) > 80) ? 'bg-yellow-500/20 border-yellow-500' : 'bg-card/80'
                     }`}
                     value={vitals.bpDia}
                     onChange={(e) => handleVitalChange("bpDia", e.target.value)}
+                    min={0}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -486,7 +492,7 @@ export default function NurseView() {
           </div>
 
           {/* Action Button */}
-          <div className="mt-auto pt-8 flex justify-end">
+          <div className="mt-auto pt-8 flex justify-center">
             <Button 
               size="lg" 
               className="h-24 px-12 text-2xl font-bold tracking-tight shadow-2xl shadow-primary/20 hover:scale-105 transition-transform"
@@ -599,6 +605,7 @@ function VitalInput({ label, unit, icon: Icon, value, onChange, min, max, normal
           type="number"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          min={0}
           className={`h-16 text-2xl text-center font-mono transition-colors ${
             isNegative ? "bg-red-500/20 border-red-500" :
             isWarning ? "bg-yellow-500/10 border-yellow-500" : "bg-card/80"

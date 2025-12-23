@@ -211,7 +211,7 @@ export default function AdminPanel() {
 
   const totalPatients = triageDistribution.reduce((sum, t) => sum + t.value, 0);
   const avgWaitTime = reportData?.average_wait_time_minutes || 0;
-  const bedOccupancy = hospitalStats ? 
+  const bedOccupancy = hospitalStats && hospitalStats.total_beds > 0 ? 
     Math.round((1 - (hospitalStats.available_beds / hospitalStats.total_beds)) * 100) : 0;
 
   return (

@@ -177,7 +177,7 @@ export default function GovernmentAuth() {
                   <p className="text-sm text-red-500">{error}</p>
                 )}
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex-col gap-4 pb-6">
                 <Button
                   type="submit"
                   className="w-full bg-triage-yellow hover:bg-triage-yellow/90"
@@ -189,18 +189,15 @@ export default function GovernmentAuth() {
                     "Sign In"
                   )}
                 </Button>
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-xs"
+                  onClick={() => navigate("/")}
+                >
+                  ← Back to role selection
+                </Button>
               </CardFooter>
             </form>
-
-            <div className="py-4 px-6 text-xs text-center text-muted-foreground bg-muted border-t rounded-b-lg">
-              <Button
-                variant="link"
-                className="p-0 h-auto text-xs"
-                onClick={() => navigate("/")}
-              >
-                ← Back to role selection
-              </Button>
-            </div>
           </Card>
         </div>
       </div>
