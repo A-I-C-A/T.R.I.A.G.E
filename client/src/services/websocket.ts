@@ -1,6 +1,8 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
+// In production, use relative URL (same origin). In dev, use env var or localhost
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 
+  (import.meta.env.MODE === 'production' ? '' : 'http://localhost:3000');
 
 class WebSocketService {
   private socket: Socket | null = null;
