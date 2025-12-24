@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { patientAPI } from "@/services/api";
 import { wsService } from "@/services/websocket";
+import { ChiefComplaintNLP } from "@/components/doctor/ChiefComplaintNLP";
 
 // Mock Data
 const SYMPTOMS = [
@@ -61,6 +62,7 @@ export default function NurseView() {
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [selectedRisks, setSelectedRisks] = useState<string[]>([]);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("General");
+  const [chiefComplaint, setChiefComplaint] = useState("");
   const [clinicalNotes, setClinicalNotes] = useState("");
   const [triageResult, setTriageResult] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -340,6 +342,7 @@ export default function NurseView() {
         age: Number(patientAge),
         gender: patientGender.toLowerCase(), // backend expects lowercase
         contact: "",
+        preferredSpecialty: selectedSpecialty, // Send nurse's selected specialty
         triageInput: {
           vitalSigns: {
             heartRate: vitals.hr ? Number(vitals.hr) : undefined,
@@ -485,14 +488,34 @@ export default function NurseView() {
           <div className="flex-1">
             <h2 className="text-xl font-light mb-4 flex items-center gap-2">
               <span className="w-1 h-6 bg-primary/50 rounded-full" />
-              Clinical Notes
+              Chief Complaint (AI-Powered)
             </h2>
-            <textarea 
-              className="w-full h-full min-h-[200px] bg-background/50 border border-input rounded-md p-4 resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="Enter chief complaint and observations..."
-              value={clinicalNotes}
-              onChange={(e) => setClinicalNotes(e.target.value)}
+            
+            {/* AI-Powered NLP Chief Complaint */}
+            <ChiefComplaintNLP
+              value={chiefComplaint}
+              onChange={setChiefComplaint}
+              onSymptomsExtracted={(symptoms) => {
+                // Auto-add extracted symptoms
+                const newSymptoms = symptoms.map(s => s.symptom);
+                setSelectedSymptoms(prev => [...new Set([...prev, ...newSymptoms])]);
+              }}
+              onSpecialtyDetected={(specialty) => {
+                setSelectedSpecialty(specialty);
+              }}
             />
+            
+            {/* Traditional Clinical Notes */}
+            <div className="mt-4">
+              <Label htmlFor="clinicalNotes">Additional Clinical Notes</Label>
+              <textarea 
+                id="clinicalNotes"
+                className="w-full min-h-[100px] bg-background/50 border border-input rounded-md p-4 resize-none focus:outline-none focus:ring-2 focus:ring-ring mt-2"
+                placeholder="Additional observations, patient history, etc..."
+                value={clinicalNotes}
+                onChange={(e) => setClinicalNotes(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 

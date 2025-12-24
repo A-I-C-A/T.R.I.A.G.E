@@ -7,3 +7,9 @@ dist/
 .idea/
 coverage/
 .nyc_output/
+venv/
+ml-service/venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

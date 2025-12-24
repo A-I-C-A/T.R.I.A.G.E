@@ -34,12 +34,57 @@ export interface TriageResult {
   reasons: string[];
   recommendedActions: string[];
   recommendedSpecialty?: string;
+  aiPrediction?: {
+    riskScore: number;
+    deteriorationProbability: number;
+    predictedEscalationTime: string | null;
+    confidence: number;
+    predictedPriority: string;
+    aiReasoning: string[];
+    shapValues: Record<string, number>;
+  };
 }
 
 export class TriageEngine {
   private static readonly CRITICAL_THRESHOLD = 80;
   private static readonly HIGH_THRESHOLD = 50;
   private static readonly MODERATE_THRESHOLD = 20;
+
+  public static async calculatePriorityWithAI(input: TriageInput, patientId?: number, waitingTime: number = 0): Promise<TriageResult> {
+    // Get rule-based result first (ALWAYS runs)
+    const ruleBasedResult = this.calculatePriority(input);
+    
+    // Try to enhance with AI prediction
+    try {
+      const { aiService } = require('./aiService');
+      
+      const aiPrediction = await aiService.predictDeterioration({
+        vitalSigns: input.vitalSigns,
+        age: input.age,
+        currentPriority: ruleBasedResult.priority,
+        waitingTime,
+        symptoms: input.symptoms,
+        riskFactors: input.riskFactors
+      });
+      
+      if (aiPrediction) {
+        ruleBasedResult.aiPrediction = {
+          riskScore: aiPrediction.risk_score,
+          deteriorationProbability: aiPrediction.deterioration_probability,
+          predictedEscalationTime: aiPrediction.predicted_escalation_time,
+          confidence: aiPrediction.confidence,
+          predictedPriority: aiPrediction.predicted_priority,
+          aiReasoning: aiPrediction.ai_reasoning,
+          shapValues: aiPrediction.shap_values
+        };
+      }
+    } catch (error) {
+      // AI enhancement failed - continue with rule-based result only
+      console.warn('AI prediction unavailable, using rule-based triage only');
+    }
+    
+    return ruleBasedResult;
+  }
 
   public static calculatePriority(input: TriageInput): TriageResult {
     let score = 0;

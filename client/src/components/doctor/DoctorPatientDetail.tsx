@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { SpecialtyIcon } from "./SpecialtyIcon";
 import { format } from "date-fns";
+import { AIEnhancedTriage } from "./AIEnhancedTriage";
 
 interface DoctorPatientDetailProps {
   patient: any;
@@ -28,8 +29,45 @@ function VitalCard({ label, value, unit, alert }: any) {
 export function DoctorPatientDetail({ patient, currentDoctor, onClaim }: DoctorPatientDetailProps) {
   if (!patient) return null;
 
+  // Calculate waiting time in minutes
+  const waitingTime = patient.arrival_time 
+    ? Math.floor((new Date().getTime() - new Date(patient.arrival_time).getTime()) / 60000)
+    : 0;
+
   return (
-    <div className="w-[30%] border-l border-border/50 bg-card/30 backdrop-blur-md p-6 flex flex-col gap-6">
+    <div className="w-[30%] border-l border-border/50 bg-card/30 backdrop-blur-md p-6 flex flex-col gap-6 overflow-y-auto">
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold">{patient.name}</h2>
+          <p className="text-muted-foreground font-mono">{patient.id}</p>
+        </div>
+        <Badge className={`text-lg px-3 py-1 ${
+          patient.priority === "RED" ? "bg-triage-red hover:bg-triage-red" :
+          patient.priority === "YELLOW" ? "bg-triage-yellow hover:bg-triage-yellow text-black" :
+          "bg-triage-green hover:bg-triage-green"
+        }`}>
+          {patient.priority}
+        </Badge>
+      </div>
+
+      {/* AI-Enhanced Triage - DETERIORATION PREDICTOR */}
+      <AIEnhancedTriage
+        patientId={patient.id}
+        vitalSigns={{
+          heartRate: patient.vitals?.hr,
+          respiratoryRate: patient.vitals?.rr,
+          systolicBP: patient.vitals?.bpSys,
+          diastolicBP: patient.vitals?.bpDia,
+          oxygenSaturation: patient.vitals?.spo2,
+          temperature: patient.vitals?.temp,
+          consciousness: patient.vitals?.avpu?.toLowerCase() || 'alert'
+        }}
+        symptoms={patient.symptoms || []}
+        riskFactors={patient.riskFactors || []}
+        age={patient.age}
+        currentPriority={patient.priority}
+        waitingTime={waitingTime}
+      />
       <div className="flex justify-between items-start">
         <div>
           <h2 className="text-2xl font-bold">{patient.name}</h2>

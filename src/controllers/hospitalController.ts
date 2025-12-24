@@ -169,4 +169,44 @@ export class HospitalController {
       res.status(500).json({ error: 'Failed to create hospital' });
     }
   }
+
+  static async getPatientHistory(req: AuthRequest, res: Response) {
+    try {
+      const hospitalId = req.user?.hospitalId || Number(req.params.hospitalId);
+
+      if (!hospitalId) {
+        return res.status(400).json({ error: 'Hospital ID required' });
+      }
+
+      // Get patient arrival history for last 7 days (for surge forecasting)
+      // Compatible with both PostgreSQL and SQLite
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const history = await db('patients')
+        .where({ hospital_id: hospitalId })
+        .where('arrival_time', '>=', sevenDaysAgo.toISOString())
+        .select('arrival_time')
+        .orderBy('arrival_time', 'asc');
+
+      // Group by hour in application code (cross-database compatible)
+      const grouped: { [key: string]: number } = {};
+      history.forEach((row: any) => {
+        const timestamp = new Date(row.arrival_time);
+        timestamp.setMinutes(0, 0, 0);
+        const hourKey = timestamp.toISOString();
+        grouped[hourKey] = (grouped[hourKey] || 0) + 1;
+      });
+
+      const result = Object.entries(grouped).map(([timestamp, patient_count]) => ({
+        timestamp,
+        patient_count
+      }));
+
+      res.json({ data: result });
+    } catch (error) {
+      logger.error('Get patient history error:', error);
+      res.status(500).json({ error: 'Failed to get patient history' });
+    }
+  }
 }

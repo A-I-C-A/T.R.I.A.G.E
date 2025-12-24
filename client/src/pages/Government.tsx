@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { hospitalAPI, analyticsAPI } from "@/services/api";
 import { wsService } from "@/services/websocket";
 import { toast } from "sonner";
+import { SurgeForecastPanel } from "@/components/doctor/SurgeForecastPanel";
 
 export default function GovernmentView() {
   const navigate = useNavigate();
@@ -450,42 +451,48 @@ export default function GovernmentView() {
             </CardContent>
           </Card>
 
-          <Card className="glass-card border-triage-red/30 bg-triage-red/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-triage-red">
-                <AlertOctagon className="w-5 h-5" />
-                Active Alerts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {dashboardData?.activeAlerts && dashboardData.activeAlerts.length > 0 ? (
-                  dashboardData.activeAlerts.slice(0, 3).map((alert: any) => (
-                    <div key={alert.id} className="p-4 bg-background/50 rounded-lg border border-triage-red/20">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold">{alert.hospital_name}</h3>
-                        <span className={`text-xs font-mono ${
-                          alert.severity === 'critical' ? 'text-triage-red animate-pulse' : 'text-triage-yellow'
-                        }`}>
-                          {alert.severity.toUpperCase()}
-                        </span>
+          {/* AI Surge Forecast + Alerts */}
+          <div className="space-y-4">
+            {/* AI Surge Forecast Panel */}
+            {hospitals && hospitals.length > 0 && (
+              <SurgeForecastPanel hospitalId={hospitals[0].id} />
+            )}
+
+            {/* Active Alerts - Smaller */}
+            <Card className="glass-card border-triage-red/30 bg-triage-red/5">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-triage-red text-sm">
+                  <AlertOctagon className="w-4 h-4" />
+                  Active Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {dashboardData?.activeAlerts && dashboardData.activeAlerts.length > 0 ? (
+                    dashboardData.activeAlerts.slice(0, 2).map((alert: any) => (
+                      <div key={alert.id} className="p-3 bg-background/50 rounded-lg border border-triage-red/20 text-xs">
+                        <div className="flex justify-between items-start mb-1">
+                          <h3 className="font-bold text-sm">{alert.hospital_name}</h3>
+                          <span className={`text-xs font-mono ${
+                            alert.severity === 'critical' ? 'text-triage-red animate-pulse' : 'text-triage-yellow'
+                          }`}>
+                            {alert.severity.toUpperCase()}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {alert.message}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {alert.message}
-                      </p>
-                      <div className="text-xs font-mono text-muted-foreground">
-                        {alert.type.toUpperCase()} • {alert.hospital_location}
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground text-xs">
+                      No active alerts
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No active alerts
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

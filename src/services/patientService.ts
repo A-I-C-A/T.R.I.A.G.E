@@ -11,6 +11,7 @@ export interface PatientInput {
   gender?: 'male' | 'female' | 'other';
   contact?: string;
   triageInput: TriageInput;
+  preferredSpecialty?: string; // Nurse's selected specialty
 }
 
 export class PatientService {
@@ -23,6 +24,9 @@ export class PatientService {
         age: input.age
       });
 
+      // Use nurse's preferred specialty if provided, otherwise use auto-determined
+      const finalSpecialty = input.preferredSpecialty || triageResult.recommendedSpecialty || 'General';
+
       const [patient] = await trx('patients')
         .insert({
           hospital_id: input.hospitalId,
@@ -32,7 +36,7 @@ export class PatientService {
           gender: input.gender,
           contact: input.contact,
           priority: triageResult.priority,
-          recommended_specialty: triageResult.recommendedSpecialty || 'General',
+          recommended_specialty: finalSpecialty,
           status: 'waiting',
           arrival_time: new Date(),
           triage_time: new Date()

@@ -75,4 +75,10 @@ router.put(
   HospitalController.acknowledgeAlert
 );
 
+router.get(
+  '/:hospitalId/patient-history',
+  authenticate,
+  HospitalController.getPatientHistory
+);
+
 export default router;
