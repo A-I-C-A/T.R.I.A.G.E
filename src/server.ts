@@ -79,6 +79,15 @@ app.post('/api/forecast/surge', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+// Health check for AI service (for doctor panel)
+app.get('/api/nlp/extract/health', async (req, res) => {
+  try {
+    const response = await aiService.checkHealth();
+    res.json({ status: response ? 'healthy' : 'unavailable' });
+  } catch (err) {
+    res.status(500).json({ status: 'unavailable', error: err.message });
+  }
+});
 // --- END ML Service Proxy Routes ---
 
 app.get('/health', (req, res) => {
