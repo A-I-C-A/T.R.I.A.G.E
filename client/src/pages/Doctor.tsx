@@ -101,10 +101,29 @@ export default function DoctorView() {
   const handleClaim = async (patientId: string) => {
     try {
       const response = await patientAPI.assignDoctor(patientId, user?.id || '');
+      const p = response.data.patient;
       const updatedPatient = {
-        ...response.data.patient,
-        doctorId: response.data.patient.doctor_id || response.data.patient.doctorId
+        ...p,
+        triageLevel: p.priority,
+        specialty: p.recommended_specialty || 'General',
+        recommendedSpecialty: p.recommended_specialty || 'General',
+        doctorId: p.doctor_id || p.doctorId,
+        patientId: p.patient_id,
+        waitingTime: p.waiting_time_minutes,
+        latestVitals: p.latest_vitals,
+        vitals: p.latest_vitals ? {
+          hr: p.latest_vitals.heart_rate,
+          rr: p.latest_vitals.respiratory_rate,
+          bpSys: p.latest_vitals.systolic_bp,
+          bpDia: p.latest_vitals.diastolic_bp,
+          spo2: p.latest_vitals.oxygen_saturation,
+          temp: p.latest_vitals.temperature,
+          avpu: p.latest_vitals.consciousness
+        } : {},
+        symptoms: Array.isArray(p.symptoms) ? p.symptoms.map((s: any) => typeof s === 'string' ? s : s.symptom) : [],
+        claimedBy: p.doctor_id ? `Doctor #${p.doctor_id}` : null
       };
+
       setQueue(queue.map(p => 
         p.id === patientId ? updatedPatient : p
       ));

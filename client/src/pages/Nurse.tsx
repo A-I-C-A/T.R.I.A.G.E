@@ -315,6 +315,7 @@ export default function NurseView() {
       priority = "GREEN"; // Less Urgent / Non-Urgent
     }
 
+    // Only use local priority for display before backend response
     setTriageResult({
       priority,
       score,
@@ -373,8 +374,16 @@ export default function NurseView() {
       // Emit WebSocket event
       wsService.emit('patient-created', response.data.patient);
 
+      // Use backend-calculated priority for display
+      setTriageResult({
+        priority: response.data.patient.priority,
+        score: response.data.patient.triage_score || 0,
+        reasons: response.data.patient.triage_reasons || [],
+        specialty: response.data.patient.specialty || selectedSpecialty,
+        timestamp: new Date().toLocaleTimeString()
+      });
       // Reset form
-      setTriageResult(null);
+      // setTriageResult(null);
       setPatientName("");
       setPatientAge("");
       setPatientGender("Male");

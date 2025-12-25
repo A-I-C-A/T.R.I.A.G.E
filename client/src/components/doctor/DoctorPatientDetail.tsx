@@ -26,7 +26,24 @@ function VitalCard({ label, value, unit, alert }: any) {
   );
 }
 
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { patientAPI } from "@/services/api";
+
 export function DoctorPatientDetail({ patient, currentDoctor, onClaim }: DoctorPatientDetailProps) {
+  const [showVitalsModal, setShowVitalsModal] = useState(false);
+  const [vitalsForm, setVitalsForm] = useState({
+    hr: patient.vitals?.hr || "",
+    rr: patient.vitals?.rr || "",
+    bpSys: patient.vitals?.bpSys || "",
+    bpDia: patient.vitals?.bpDia || "",
+    spo2: patient.vitals?.spo2 || "",
+    temp: patient.vitals?.temp || "",
+    avpu: patient.vitals?.avpu || "Alert"
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+
   if (!patient) return null;
 
   // Calculate waiting time in minutes
@@ -34,8 +51,63 @@ export function DoctorPatientDetail({ patient, currentDoctor, onClaim }: DoctorP
     ? Math.floor((new Date().getTime() - new Date(patient.arrival_time).getTime()) / 60000)
     : 0;
 
+  const handleVitalsChange = (key: string, value: string) => {
+    setVitalsForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleUpdateVitals = async () => {
+    setIsUpdating(true);
+    try {
+      await patientAPI.updateVitals(String(patient.id), {
+        heartRate: vitalsForm.hr ? Number(vitalsForm.hr) : undefined,
+        respiratoryRate: vitalsForm.rr ? Number(vitalsForm.rr) : undefined,
+        systolicBP: vitalsForm.bpSys ? Number(vitalsForm.bpSys) : undefined,
+        diastolicBP: vitalsForm.bpDia ? Number(vitalsForm.bpDia) : undefined,
+        oxygenSaturation: vitalsForm.spo2 ? Number(vitalsForm.spo2) : undefined,
+        temperature: vitalsForm.temp ? Number(vitalsForm.temp) : undefined,
+        consciousness: vitalsForm.avpu?.toLowerCase() || 'alert',
+      });
+      toast.success('Vitals updated!');
+      setShowVitalsModal(false);
+      // Refresh the page to ensure latest patient data is shown
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update vitals');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="w-[30%] border-l border-border/50 bg-card/30 backdrop-blur-md p-6 flex flex-col gap-6 overflow-y-auto">
+      {showVitalsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-background rounded-xl p-8 w-full max-w-md border border-border">
+            <h2 className="text-xl font-bold mb-4">Update Vitals</h2>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <Input placeholder="Heart Rate (bpm)" value={vitalsForm.hr} onChange={e => handleVitalsChange('hr', e.target.value)} />
+              <Input placeholder="Resp. Rate (rpm)" value={vitalsForm.rr} onChange={e => handleVitalsChange('rr', e.target.value)} />
+              <Input placeholder="BP Sys" value={vitalsForm.bpSys} onChange={e => handleVitalsChange('bpSys', e.target.value)} />
+              <Input placeholder="BP Dia" value={vitalsForm.bpDia} onChange={e => handleVitalsChange('bpDia', e.target.value)} />
+              <Input placeholder="SpO2 (%)" value={vitalsForm.spo2} onChange={e => handleVitalsChange('spo2', e.target.value)} />
+              <Input placeholder="Temp (°C)" value={vitalsForm.temp} onChange={e => handleVitalsChange('temp', e.target.value)} />
+              <Select value={vitalsForm.avpu} onValueChange={v => handleVitalsChange('avpu', v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Alert">Alert</SelectItem>
+                  <SelectItem value="Voice">Voice</SelectItem>
+                  <SelectItem value="Pain">Pain</SelectItem>
+                  <SelectItem value="Unresponsive">Unresponsive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-4 justify-end">
+              <Button variant="outline" onClick={() => setShowVitalsModal(false)} disabled={isUpdating}>Cancel</Button>
+              <Button onClick={handleUpdateVitals} loading={isUpdating}>Update</Button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex justify-between items-start">
         <div>
           <h2 className="text-2xl font-bold">{patient.name}</h2>
@@ -148,7 +220,7 @@ export function DoctorPatientDetail({ patient, currentDoctor, onClaim }: DoctorP
         )}
         
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" className="h-10">
+          <Button variant="outline" className="h-10" onClick={() => setShowVitalsModal(true)}>
             <Activity className="mr-2 w-4 h-4" /> Update Vitals
           </Button>
           <Button variant="outline" className="h-10">

@@ -56,6 +56,8 @@ app.post('/api/nlp/extract', async (req, res) => {
 app.post('/api/predict/deterioration', async (req, res) => {
   try {
     const prediction = await aiService.predictDeterioration(req.body);
+    console.log('[AI DEBUG] /api/predict/deterioration request:', req.body);
+    console.log('[AI DEBUG] /api/predict/deterioration response:', prediction);
     if (prediction) {
       res.json({ success: true, prediction });
     } else {

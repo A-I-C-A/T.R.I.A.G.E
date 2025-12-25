@@ -102,6 +102,10 @@ export const patientAPI = {
   
   updateStatus: (id: string, status: string) =>
     api.patch(`/patients/${id}/status`, { status }),
+
+  // Update patient vitals
+  updateVitals: (id: string, vitalSigns: any) =>
+    api.put(`/patients/${id}/vitals`, { vitalSigns }),
 };
 
 export const hospitalAPI = {
