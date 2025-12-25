@@ -37,6 +37,50 @@ app.use('/api/patients', patientRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
+// --- ML Service Proxy Routes ---
+import { aiService } from './services/aiService';
+
+app.post('/api/nlp/extract', async (req, res) => {
+  try {
+    const extraction = await aiService.extractFromChiefComplaint(req.body.text);
+    if (extraction) {
+      res.json({ success: true, extraction });
+    } else {
+      res.status(500).json({ success: false, error: 'ML extraction failed' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/predict/deterioration', async (req, res) => {
+  try {
+    const prediction = await aiService.predictDeterioration(req.body);
+    if (prediction) {
+      res.json({ success: true, prediction });
+    } else {
+      res.status(500).json({ success: false, error: 'ML prediction failed' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/forecast/surge', async (req, res) => {
+  try {
+    const { hospitalId, historicalData, hoursAhead } = req.body;
+    const forecast = await aiService.forecastSurge(hospitalId, historicalData, hoursAhead);
+    if (forecast) {
+      res.json({ success: true, forecast });
+    } else {
+      res.status(500).json({ success: false, error: 'ML forecast failed' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+// --- END ML Service Proxy Routes ---
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
