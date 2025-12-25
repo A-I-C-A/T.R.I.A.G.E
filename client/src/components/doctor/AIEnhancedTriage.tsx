@@ -44,7 +44,8 @@ export const AIEnhancedTriage: React.FC<AIEnhancedTriageProps> = ({
 
   const checkAIService = async () => {
     try {
-      const response = await fetch('http://localhost:5001/health');
+      const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001';
+      const response = await fetch(`${ML_SERVICE_URL}/health`);
       const data = await response.json();
       setAiServiceAvailable(data.status === 'healthy');
     } catch (error) {
@@ -55,7 +56,8 @@ export const AIEnhancedTriage: React.FC<AIEnhancedTriageProps> = ({
   const fetchAIPrediction = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5001/api/predict/deterioration', {
+      const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001';
+      const response = await fetch(`${ML_SERVICE_URL}/api/predict/deterioration`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

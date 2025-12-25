@@ -64,7 +64,8 @@ export const ChiefComplaintNLP: React.FC<ChiefComplaintNLPProps> = ({
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:5001/api/nlp/extract', {
+      const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001';
+      const response = await fetch(`${ML_SERVICE_URL}/api/nlp/extract`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
