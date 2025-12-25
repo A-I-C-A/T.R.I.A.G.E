@@ -50,8 +50,7 @@ export const SurgeForecastPanel: React.FC<SurgeForecastPanelProps> = ({ hospital
       const historicalData = await historicalResponse.json();
 
       // Get forecast from ML service
-      const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001';
-      const response = await fetch(`${ML_SERVICE_URL}/api/forecast/surge`, {
+      const response = await fetch(`/api/forecast/surge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
