@@ -7,5 +7,5 @@ buildCommand = "npm run build"
 startCommand = "npm start"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-healthcheckPath = "/api/hospitals"
+healthcheckPath = "/health"
 healthcheckTimeout = 100
