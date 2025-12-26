@@ -385,7 +385,7 @@ export default function NurseView() {
         timestamp: new Date().toLocaleTimeString()
       });
       // Reset form
-      // setTriageResult(null);
+      setTriageResult(null);
       setPatientName("");
       setPatientAge("");
       setPatientGender("Male");
@@ -748,9 +748,18 @@ export default function NurseView() {
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="w-full max-w-2xl glass-panel rounded-2xl p-8 border-2 border-border shadow-2xl"
+              className="w-full max-w-2xl glass-panel rounded-2xl p-8 border-2 border-border shadow-2xl relative"
             >
-              <div className="text-center mb-8">
+              {/* X Button */}
+                <button
+                  className="absolute top-4 right-4 text-2xl text-muted-foreground hover:text-primary transition-colors z-10"
+                  onClick={() => setTriageResult(null)}
+                  aria-label="Close"
+                  type="button"
+                >
+                  ×
+                </button>
+                <div className="text-center mb-8">
                 <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground mb-4">Triage Assessment Complete</h2>
                 <div className={`inline-flex items-center justify-center w-48 h-48 rounded-full border-8 text-5xl font-black tracking-tighter mb-6 animate-pulse
                   ${triageResult.priority === 'RED' ? 'border-triage-red bg-triage-red text-white shadow-[0_0_60px_rgba(220,38,38,0.8)]' : 
