@@ -1,4 +1,4 @@
-# TRIAGELOCK
+# T.R.I.A.G.E
 
 **Real-time Triage, AI-Assisted Patient Safety & Surge Intelligence**
 
