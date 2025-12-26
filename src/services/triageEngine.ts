@@ -26,7 +26,7 @@ export interface TriageInput {
   chiefComplaint?: string;
 }
 
-export type Priority = 'RED' | 'YELLOW' | 'GREEN' | 'BLUE';
+export type Priority = 'RED' | 'YELLOW' | 'GREEN';
 
 export interface TriageResult {
   priority: Priority;
@@ -109,7 +109,7 @@ export class TriageEngine {
       priority = 'YELLOW';
       recommendedActions.push('Urgent care needed within 30 minutes');
       recommendedActions.push('Continuous monitoring');
-    } else {
+    } else { // All scores below HIGH_THRESHOLD become GREEN
       priority = 'GREEN';
       recommendedActions.push('Standard care - within 2 hours');
       recommendedActions.push('Regular vital checks');
@@ -331,11 +331,10 @@ export class TriageEngine {
       RED: 0,
       YELLOW: Number(process.env.CRITICAL_WAIT_TIME_MINUTES) || 15,
       GREEN: Number(process.env.HIGH_WAIT_TIME_MINUTES) || 60,
-      BLUE: Number(process.env.MEDIUM_WAIT_TIME_MINUTES) || 120
     };
 
     if (currentPriority !== 'RED' && waitingTimeMinutes > waitThresholds[currentPriority]) {
-      const priorityOrder = ['BLUE', 'GREEN', 'YELLOW', 'RED'];
+      const priorityOrder = ['GREEN', 'YELLOW', 'RED'];
       const currentIndex = priorityOrder.indexOf(currentPriority);
       const newPriority = priorityOrder[currentIndex + 1] as Priority;
 
@@ -356,7 +355,7 @@ export class TriageEngine {
           newPriority: 'RED',
           reason: `Vital signs deteriorated: ${vitalReasons.join(', ')}`
         };
-      } else if (vitalScore >= this.HIGH_THRESHOLD && (currentPriority === 'GREEN' || currentPriority === 'BLUE')) {
+      } else if (vitalScore >= this.HIGH_THRESHOLD && (currentPriority === 'GREEN')) {
         return {
           shouldEscalate: true,
           newPriority: 'YELLOW',

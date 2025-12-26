@@ -132,189 +132,171 @@ export default function NurseView() {
     
     // === CRITICAL VITAL SIGNS (Immediate Red Flags) ===
     
-    // Consciousness Level (AVPU) - Most Critical
-    if (vitals.avpu === "Unresponsive") {
-      score += 5;
-      reasons.push("Patient Unresponsive - Critical");
-    } else if (vitals.avpu === "Pain") {
-      score += 4;
-      reasons.push("Responds Only to Pain - Severe");
-    } else if (vitals.avpu === "Voice") {
-      score += 2;
-      reasons.push("Altered Consciousness");
+    // Consciousness Level (AVPU)
+    switch (vitals.avpu) {
+      case "Unresponsive":
+        score += 40;
+        reasons.push('Patient unresponsive - CRITICAL');
+        break;
+      case "Pain":
+        score += 25;
+        reasons.push('Responds only to pain');
+        break;
+      case "Voice":
+        score += 15;
+        reasons.push('Responds to verbal stimuli');
+        break;
     }
     
-    // Oxygen Saturation - Critical
-    if (Number(vitals.spo2) < 85) {
-      score += 5;
-      reasons.push("Critical SpO2 (<85%) - Severe Hypoxia");
-    } else if (Number(vitals.spo2) < 90) {
-      score += 3;
-      reasons.push("Low SpO2 (<90%) - Hypoxia");
+    // Oxygen Saturation
+    if (Number(vitals.spo2) < 90) {
+      score += 30;
+      reasons.push(`Critical Oxygen Saturation: ${vitals.spo2}%`);
     } else if (Number(vitals.spo2) < 94) {
-      score += 1;
-      reasons.push("Borderline SpO2 (<94%)");
+      score += 20;
+      reasons.push(`Low Oxygen Saturation: ${vitals.spo2}%`);
+    } else if (Number(vitals.spo2) < 96) {
+      score += 10;
+      reasons.push(`Reduced Oxygen Saturation: ${vitals.spo2}%`);
     }
     
-    // Respiratory Rate - Critical
+    // Respiratory Rate
     if (Number(vitals.rr) < 8 || Number(vitals.rr) > 30) {
-      score += 4;
-      reasons.push("Critical Respiratory Rate");
+      score += 30;
+      reasons.push(`Critical Respiratory Rate: ${vitals.rr}/min`);
     } else if (Number(vitals.rr) < 10 || Number(vitals.rr) > 24) {
-      score += 2;
-      reasons.push("Abnormal Respiratory Rate");
+      score += 20;
+      reasons.push(`Abnormal Respiratory Rate: ${vitals.rr}/min`);
+    } else if (Number(vitals.rr) < 12 || Number(vitals.rr) > 20) {
+      score += 10;
+      reasons.push(`Elevated Respiratory Rate: ${vitals.rr}/min`);
     }
     
-    // Heart Rate - Critical
+    // Heart Rate
     if (Number(vitals.hr) < 40 || Number(vitals.hr) > 140) {
-      score += 4;
-      reasons.push("Critical Heart Rate");
+      score += 30;
+      reasons.push(`Critical Heart Rate: ${vitals.hr} bpm`);
     } else if (Number(vitals.hr) < 50 || Number(vitals.hr) > 120) {
-      score += 2;
-      reasons.push("Abnormal Heart Rate");
+      score += 20;
+      reasons.push(`Abnormal Heart Rate: ${vitals.hr} bpm`);
+    } else if (Number(vitals.hr) < 60 || Number(vitals.hr) > 100) {
+      score += 10;
+      reasons.push(`Elevated Heart Rate: ${vitals.hr} bpm`);
     }
     
-    // Blood Pressure - Critical
+    // Blood Pressure
     const systolic = Number(vitals.bpSys);
     const diastolic = Number(vitals.bpDia);
     
-    if (systolic < 80 || systolic > 200) {
-      score += 4;
-      reasons.push("Critical Blood Pressure - Systolic");
-    } else if (systolic < 90 || systolic > 160) {
-      score += 2;
-      reasons.push("Abnormal Blood Pressure - Systolic");
+    if (systolic < 90 || systolic > 200) {
+      score += 30;
+      reasons.push(`Critical Blood Pressure - Systolic: ${systolic}`);
+    } else if (systolic < 100 || systolic > 180) {
+      score += 20;
+      reasons.push(`Abnormal Blood Pressure - Systolic: ${systolic}`);
+    } else if (systolic > 140) { // Specific backend rule
+      score += 12;
+      reasons.push(`Elevated Blood Pressure - Systolic: ${systolic}`);
+    }
+
+    if (diastolic < 60 || diastolic > 120) {
+      score += 20;
+      reasons.push(`Critical Blood Pressure - Diastolic: ${diastolic}`);
+    } else if (diastolic < 70 || diastolic > 90) {
+      score += 10;
+      reasons.push(`Abnormal Blood Pressure - Diastolic: ${diastolic}`);
     }
     
-    if (diastolic < 50 || diastolic > 120) {
-      score += 3;
-      reasons.push("Critical Blood Pressure - Diastolic");
-    } else if (diastolic < 60 || diastolic > 100) {
-      score += 1;
-      reasons.push("Elevated Blood Pressure - Diastolic");
-    }
-    
-    // Temperature - Critical
+    // Temperature
     if (Number(vitals.temp) < 35 || Number(vitals.temp) > 40) {
-      score += 3;
-      reasons.push("Critical Temperature (Hypothermia/High Fever)");
-    } else if (Number(vitals.temp) < 36 || Number(vitals.temp) > 38.5) {
-      score += 1;
-      reasons.push("Abnormal Temperature");
+      score += 25;
+      reasons.push(`Critical Temperature: ${vitals.temp}°C`);
+    } else if (Number(vitals.temp) < 36 || Number(vitals.temp) > 39) {
+      score += 15;
+      reasons.push(`Abnormal Temperature: ${vitals.temp}°C`);
+    } else if (Number(vitals.temp) > 38) {
+      score += 8;
+      reasons.push(`Fever: ${vitals.temp}°C`);
     }
     
-    // === HIGH-RISK SYMPTOMS ===
-    
-    if (selectedSymptoms.includes("Chest Pain")) {
-      score += 3;
-      reasons.push("Chest Pain - Cardiac Risk");
-    }
-    
-    if (selectedSymptoms.includes("Shortness of Breath")) {
-      score += 3;
-      reasons.push("Shortness of Breath - Respiratory Distress");
-    }
-    
-    if (selectedSymptoms.includes("Bleeding")) {
-      score += 3;
-      reasons.push("Active Bleeding");
-    }
-    
-    if (selectedSymptoms.includes("Trauma")) {
-      score += 3;
-      reasons.push("Traumatic Injury");
-    }
-    
-    if (selectedSymptoms.includes("Abdominal Pain")) {
-      score += 2;
-      reasons.push("Abdominal Pain - Possible Acute Abdomen");
-    }
-    
-    if (selectedSymptoms.includes("Headache")) {
-      score += 1;
-      reasons.push("Headache");
-    }
-    
-    if (selectedSymptoms.includes("Fever")) {
-      score += 1;
-      reasons.push("Fever Present");
-    }
-    
-    if (selectedSymptoms.includes("Dizziness")) {
-      score += 1;
-      reasons.push("Dizziness - Fall Risk");
-    }
-    
-    if (selectedSymptoms.includes("Nausea") || selectedSymptoms.includes("Vomiting")) {
-      score += 1;
-      reasons.push("GI Symptoms");
+    // === SYMPTOMS ===
+    const criticalSymptoms = [
+      'chest pain', 'difficulty breathing', 'severe bleeding', 'stroke symptoms',
+      'altered mental status', 'severe head injury', 'seizure', 'loss of consciousness',
+      'suspected heart attack', 'anaphylaxis', 'severe burns'
+    ];
+    const urgentSymptoms = [
+      'moderate bleeding', 'severe pain', 'high fever', 'vomiting blood',
+      'severe dehydration', 'broken bone', 'severe allergic reaction'
+    ];
+
+    for (const s of selectedSymptoms) {
+      const lowerSymptom = s.toLowerCase();
+      // For frontend, assume 'moderate' severity for now, as severity selection is not yet implemented in UI for symptoms
+      const severity = 'moderate'; 
+
+      if (criticalSymptoms.some(cs => lowerSymptom.includes(cs))) {
+        score += severity === 'critical' ? 40 : 30; // Backend uses 40 for critical severity, 30 for others
+        reasons.push(`Critical symptom: ${s} (${severity})`);
+      } else if (urgentSymptoms.some(us => lowerSymptom.includes(us))) {
+        score += severity === 'severe' ? 25 : 15; // Backend uses 25 for severe severity, 15 for others
+        reasons.push(`Urgent symptom: ${s} (${severity})`);
+      } else {
+        // Default scoring for other symptoms
+        if (severity === 'critical') score += 20;
+        else if (severity === 'severe') score += 15;
+        else if (severity === 'moderate') score += 8;
+        else score += 3; // 'mild'
+
+        if (severity !== 'mild') {
+          reasons.push(`${severity} ${s}`);
+        }
+      }
     }
     
     // === RISK FACTORS & COMORBIDITIES ===
-    
-    if (selectedRisks.includes("Heart Disease")) {
-      score += 2;
-      reasons.push("Pre-existing Heart Disease");
-    }
-    
-    if (selectedRisks.includes("Asthma") && selectedSymptoms.includes("Shortness of Breath")) {
-      score += 2;
-      reasons.push("Asthma with Respiratory Symptoms");
-    }
-    
-    if (selectedRisks.includes("Immunocompromised")) {
-      score += 2;
-      reasons.push("Immunocompromised Patient");
-    }
-    
-    if (selectedRisks.includes("Pregnancy")) {
-      score += 2;
-      reasons.push("Pregnant Patient - Special Considerations");
-    }
-    
-    if (selectedRisks.includes("Recent Surgery")) {
-      score += 1;
-      reasons.push("Post-Surgical Patient");
-    }
-    
-    if (selectedRisks.includes("Diabetes")) {
-      score += 1;
-      reasons.push("Diabetic Patient");
-    }
-    
-    if (selectedRisks.includes("Hypertension")) {
-      score += 1;
-      reasons.push("Hypertensive Patient");
+    const highRiskConditions = [
+      'cardiac', 'respiratory', 'diabetes', 'immunocompromised',
+      'pregnancy', 'cancer', 'organ transplant', 'renal failure', 'heart disease', 'coronary', 'stroke', 'hypertension', 'copd', 'asthma'
+    ];
+
+    for (const r of selectedRisks) {
+      const lowerFactor = r.toLowerCase();
+      if (highRiskConditions.some(hr => lowerFactor.includes(hr))) {
+        score += 20;
+        reasons.push(`High-risk condition: ${r}`);
+      } else {
+        score += 5;
+        reasons.push(`Risk factor: ${r}`);
+      }
     }
     
     // === AGE CONSIDERATIONS ===
-    
-    if (age >= 65 || selectedRisks.includes("Elderly (>65)")) {
-      score += 1;
-      reasons.push("Elderly Patient - Higher Risk");
+    if (age !== undefined) {
+      if (age < 1) {
+        score += 15;
+        reasons.push('Infant - high risk');
+      } else if (age >= 75) {
+        score += 10;
+        reasons.push(`Age-related risk: ${age} years`);
+      } else if (age < 5) {
+        score += 8;
+        reasons.push(`Young child: ${age} years`);
+      } else if (age > 65) {
+        score += 5;
+        reasons.push(`Elderly patient: ${age} years`);
+      }
     }
     
-    if (age < 2) {
-      score += 2;
-      reasons.push("Infant - Requires Immediate Assessment");
-    } else if (age < 12) {
-      score += 1;
-      reasons.push("Pediatric Patient");
-    }
-    
-    // === PRIORITY ASSIGNMENT (Adjusted thresholds to better match backend scale) ===
-    // Map the local score to triage categories conservatively so backend remains authoritative
-    let priority = "BLUE"; // default to least urgent for pre-check
+    // === PRIORITY ASSIGNMENT (Aligned with Backend TriageEngine) ===
+    let priority;
 
-    // Conservative thresholds (tuned for the scaled-down nurse scoring system)
-    if (score >= 25) {
-      priority = "RED"; // Immediate
-    } else if (score >= 15) {
-      priority = "YELLOW"; // Urgent
-    } else if (score >= 7) {
-      priority = "GREEN"; // Standard
-    } else {
-      priority = "BLUE"; // Minor
+    if (score >= 40) { // CRITICAL_THRESHOLD from backend
+      priority = "RED";
+    } else if (score >= 25) { // HIGH_THRESHOLD from backend
+      priority = "YELLOW";
+    } else { // All other scores are GREEN
+      priority = "GREEN";
     }
 
     // Only use local priority for display before backend response
@@ -764,7 +746,6 @@ export default function NurseView() {
                 <div className={`inline-flex items-center justify-center w-48 h-48 rounded-full border-8 text-5xl font-black tracking-tighter mb-6 animate-pulse
                   ${triageResult.priority === 'RED' ? 'border-triage-red bg-triage-red text-white shadow-[0_0_60px_rgba(220,38,38,0.8)]' : 
                     triageResult.priority === 'YELLOW' ? 'border-triage-yellow bg-triage-yellow text-black shadow-[0_0_60px_rgba(251,191,36,0.8)]' : 
-                    triageResult.priority === 'BLUE' ? 'border-triage-blue bg-triage-blue text-white shadow-[0_0_60px_rgba(59,130,246,0.8)]' : 
                     'border-triage-green bg-triage-green text-white shadow-[0_0_60px_rgba(16,185,129,0.8)]'}`}
                 >
                   {triageResult.priority}

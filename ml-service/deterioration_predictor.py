@@ -15,10 +15,9 @@ class DeteriorationPredictor:
             'unresponsive': 3
         }
         self.priority_map = {
-            'BLUE': 0,
-            'GREEN': 1,
-            'YELLOW': 2,
-            'RED': 3
+            'GREEN': 0,
+            'YELLOW': 1,
+            'RED': 2
         }
         self._initialize_model()
     
@@ -77,17 +76,17 @@ class DeteriorationPredictor:
         
         # Heart rate analysis
         if hr < 40 or hr > 140:
-            contribution = 25
+            contribution = 30
             risk_score += contribution
             shap_values['heart_rate'] = contribution
             reasoning.append(f"Critical heart rate detected: {hr} bpm")
         elif hr < 50 or hr > 120:
-            contribution = 15
+            contribution = 20
             risk_score += contribution
             shap_values['heart_rate'] = contribution
             reasoning.append(f"Abnormal heart rate: {hr} bpm")
-        elif hr > 100:
-            contribution = 8
+        elif hr < 60 or hr > 100:
+            contribution = 10
             risk_score += contribution
             shap_values['heart_rate'] = contribution
             reasoning.append(f"Elevated heart rate: {hr} bpm")
@@ -114,110 +113,146 @@ class DeteriorationPredictor:
             shap_values['oxygen_saturation'] = 0
         
         # Blood pressure analysis
+        # Assuming only systolic is used for simplicity, matching TriageEngine's direct systolic contributions
         if bp < 90 or bp > 200:
-            contribution = 25
+            contribution = 30
             risk_score += contribution
             shap_values['systolic_bp'] = contribution
             reasoning.append(f"Critical blood pressure: {bp} mmHg")
         elif bp < 100 or bp > 180:
-            contribution = 15
+            contribution = 20
             risk_score += contribution
             shap_values['systolic_bp'] = contribution
             reasoning.append(f"Abnormal blood pressure: {bp} mmHg")
+        elif bp > 140: # This specific rule is present in TriageEngine
+            contribution = 12
+            risk_score += contribution
+            shap_values['systolic_bp'] = contribution
+            reasoning.append(f"Elevated blood pressure: {bp} mmHg")
         else:
             shap_values['systolic_bp'] = 0
         
         # Respiratory rate
         if rr < 8 or rr > 30:
-            contribution = 25
+            contribution = 30
             risk_score += contribution
             shap_values['respiratory_rate'] = contribution
             reasoning.append(f"Critical respiratory rate: {rr}/min")
         elif rr < 10 or rr > 24:
-            contribution = 15
+            contribution = 20
             risk_score += contribution
             shap_values['respiratory_rate'] = contribution
+            reasoning.append(f"Abnormal respiratory rate: {rr}/min")
+        elif rr < 12 or rr > 20:
+            contribution = 10
+            risk_score += contribution
+            shap_values['respiratory_rate'] = contribution
+            reasoning.append(f"Elevated respiratory rate: {rr}/min")
         else:
             shap_values['respiratory_rate'] = 0
         
         # Temperature
         if temp < 35 or temp > 40:
-            contribution = 20
+            contribution = 25
             risk_score += contribution
             shap_values['temperature'] = contribution
             reasoning.append(f"Critical temperature: {temp}°C")
-        elif temp > 38.5:
-            contribution = 10
+        elif temp < 36 or temp > 39:
+            contribution = 15
             risk_score += contribution
             shap_values['temperature'] = contribution
-            reasoning.append(f"High fever: {temp}°C")
+            reasoning.append(f"Abnormal temperature: {temp}°C")
+        elif temp > 38: # This specific rule is present in TriageEngine
+            contribution = 8
+            risk_score += contribution
+            shap_values['temperature'] = contribution
+            reasoning.append(f"Fever: {temp}°C")
         else:
             shap_values['temperature'] = 0
         
         # Consciousness level
-        consciousness_score = self.consciousness_map.get(consciousness, 0)
-        if consciousness_score >= 2:
-            contribution = 35
+        if consciousness == 'unresponsive':
+            contribution = 40
             risk_score += contribution
             shap_values['consciousness'] = contribution
-            reasoning.append(f"Altered consciousness: {consciousness}")
-        elif consciousness_score == 1:
+            reasoning.append('Patient unresponsive - CRITICAL')
+        elif consciousness == 'pain':
+            contribution = 25
+            risk_score += contribution
+            shap_values['consciousness'] = contribution
+            reasoning.append('Responds only to pain')
+        elif consciousness == 'verbal':
             contribution = 15
             risk_score += contribution
             shap_values['consciousness'] = contribution
-        else:
+            reasoning.append('Responds to verbal stimuli')
+        else: # 'alert'
             shap_values['consciousness'] = 0
         
         # Age factor
-        if age > 75:
-            contribution = 12
-            risk_score += contribution
-            shap_values['age'] = contribution
-            reasoning.append(f"High-risk age group: {age} years")
-        elif age > 65:
-            contribution = 8
-            risk_score += contribution
-            shap_values['age'] = contribution
-        elif age < 1:
+        if age < 1:
             contribution = 15
             risk_score += contribution
             shap_values['age'] = contribution
             reasoning.append("Infant - high risk")
+        elif age >= 75:
+            contribution = 10
+            risk_score += contribution
+            shap_values['age'] = contribution
+            reasoning.append(f"Age-related risk: {age} years")
+        elif age < 5:
+            contribution = 8
+            risk_score += contribution
+            shap_values['age'] = contribution
+            reasoning.append(f"Young child: {age} years")
+        elif age > 65:
+            contribution = 5
+            risk_score += contribution
+            shap_values['age'] = contribution
+            reasoning.append(f"Elderly patient: {age} years")
         else:
             shap_values['age'] = 0
         
         # Waiting time factor (deterioration risk increases with wait)
-        if waiting_time > 60:
+        # TriageEngine uses waiting time for escalation, not initial scoring.
+        # This is a place where AI can add value by predicting deterioration due to wait.
+        if waiting_time > 120: # Example: more than 2 hours
             contribution = 15
             risk_score += contribution
             shap_values['waiting_time'] = contribution
             reasoning.append(f"Extended wait time: {waiting_time} minutes")
-        elif waiting_time > 30:
+        elif waiting_time > 60: # Example: more than 1 hour
             contribution = 8
             risk_score += contribution
             shap_values['waiting_time'] = contribution
         else:
             shap_values['waiting_time'] = 0
         
-        # Symptom burden
-        if symptom_count >= 4:
+        # Symptom burden (approximated from TriageEngine's detailed symptom scoring)
+        if symptom_count >= 3: # Backend has critical symptoms contributing 30-40, urgent 15-25
+            contribution = 20
+            risk_score += contribution
+            shap_values['symptom_count'] = contribution
+            reasoning.append(f"Multiple severe symptoms: {symptom_count}")
+        elif symptom_count >= 1:
             contribution = 10
             risk_score += contribution
             shap_values['symptom_count'] = contribution
-            reasoning.append(f"Multiple symptoms: {symptom_count}")
+            reasoning.append(f"Presence of symptoms: {symptom_count}")
         else:
             shap_values['symptom_count'] = 0
         
-        # Risk factors
-        if risk_factor_count >= 3:
-            contribution = 12
+        # Risk factors (approximated from TriageEngine's detailed risk factor scoring)
+        if risk_factor_count >= 2: # Backend has high-risk conditions contributing 20
+            contribution = 15
             risk_score += contribution
             shap_values['risk_factors'] = contribution
-            reasoning.append(f"Multiple comorbidities: {risk_factor_count}")
+            reasoning.append(f"Multiple significant risk factors: {risk_factor_count}")
         elif risk_factor_count >= 1:
-            contribution = 6
+            contribution = 8
             risk_score += contribution
             shap_values['risk_factors'] = contribution
+            reasoning.append(f"Presence of risk factors: {risk_factor_count}")
         else:
             shap_values['risk_factors'] = 0
         
@@ -227,23 +262,23 @@ class DeteriorationPredictor:
         # Calculate deterioration probability
         deterioration_probability = risk_score / 100.0
         
-        # Predict if escalation will occur
+        # Predict if escalation will occur (aligned with backend TriageEngine thresholds)
         predicted_priority = current_priority
         predicted_escalation_time = None
         
-        priority_level = self.priority_map.get(current_priority, 1)
+        # Adjust priority_level based on the new self.priority_map where GREEN is 0, YELLOW 1, RED 2
+        priority_level = self.priority_map.get(current_priority, 0) # Default to GREEN (0)
         
-        if risk_score >= 80 and priority_level < 3:
+        if risk_score >= 40 and priority_level < self.priority_map['RED']:
             predicted_priority = 'RED'
             predicted_escalation_time = datetime.now() + timedelta(minutes=8)
             reasoning.insert(0, "⚠️ CRITICAL: Immediate escalation to RED predicted")
-        elif risk_score >= 60 and priority_level < 2:
+        elif risk_score >= 25 and priority_level < self.priority_map['YELLOW']:
             predicted_priority = 'YELLOW'
             predicted_escalation_time = datetime.now() + timedelta(minutes=12)
             reasoning.insert(0, "⚠️ WARNING: Escalation to YELLOW predicted")
-        elif risk_score >= 40 and priority_level < 1:
-            predicted_priority = 'GREEN'
-            predicted_escalation_time = datetime.now() + timedelta(minutes=20)
+        # No explicit condition for GREEN, as it's the base case. If risk_score is below YELLOW threshold, it stays/becomes GREEN.
+
         
         # Calculate confidence (based on data quality)
         confidence = 0.85  # Base confidence
