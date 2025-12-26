@@ -1,298 +1,147 @@
-# TRIAGELOCK Backend
+# TRIAGELOCK — Real‑time Triage, AI‑Assisted Patient Safety & Surge Intelligence
 
-## Rule-Based Emergency Triage & Load Management System
+Updated: 2025-12-26T11:03:16.111Z
 
-A real-time, deterministic triage system for hospitals. **No AI. No ML. Pure clinical logic.**
+A full-stack, production‑minded platform for emergency triage, hospital load management, and mass‑casualty surge forecasting. TRIAGELOCK combines deterministic clinical triage rules with explainable AI models and city‑level operational dashboards to help clinicians and public health authorities make faster, safer decisions during routine and crisis operations.
 
-**Based on Emergency Severity Index (ESI) v4 + WHO Mass Casualty Triage protocols.**
-
-> 📋 **See [CLINICAL_PROTOCOL.md](CLINICAL_PROTOCOL.md) for complete medical foundation, exact thresholds, and failure scenario handling.**
-
----
-
-## Features
-
-### 1. Rule-Based Digital Triage Engine
-- **Protocol**: Emergency Severity Index (ESI) v4 + WHO Mass Casualty Triage
-- Clinical priority calculation based on vital signs, symptoms, and risk factors
-- Four-tier priority system: RED (ESI 1), YELLOW (ESI 2-3), GREEN (ESI 4), BLUE (ESI 5)
-- **Exact thresholds**: HR < 40 or > 140 → RED, O2 < 90% → RED, BP < 90 → RED (see CLINICAL_PROTOCOL.md)
-- Transparent clinical reasoning for every decision
-
-### 2. Live Emergency Queue Dashboard
-- Real-time WebSocket updates
-- Automatic priority escalation based on waiting time
-- Color-coded urgency visualization
-
-### 3. Hospital Load Awareness
-- Bed availability tracking (General + ICU)
-- Staff availability monitoring
-- Real-time capacity management
-
-### 4. Automatic Escalation Rules
-- **Time-based**: YELLOW→RED after 15min, GREEN→YELLOW after 60min, BLUE→GREEN after 120min
-- **Vitals-based**: Deteriorating vitals trigger immediate re-triage
-- Deterministic rule engine (no predictions, only clinical thresholds)
-- Prevents patient deterioration during wait times
-
-### 5. Admin / Government View
-- **Failure scenario handling**: Overcrowding, ICU full, staff shortage
-- Crowd surge monitoring with actionable alerts
-- Multi-hospital dashboard with transfer recommendations
-- Exportable incident reports for regulatory compliance
-- Peak load analytics with predictive indicators
+Key strengths:
+- Real‑time clinician experience (claim patients, update vitals, start treatment)
+- Explainable AI per‑patient risk scoring (deterioration predictor with reasoning)
+- Mass Casualty Surge Forecaster (6‑hour forecast, CI bands, recommendations)
+- Government dashboard for cross‑hospital situational awareness and operational playbooks
+- Seeded SQLite DB included for repeatable hackathon demos (triagelock.sqlite3)
 
 ---
 
-## 🏥 Clinical Credibility
+## High‑Level Features (What makes TRIAGELOCK powerful)
 
-### Evidence-Based Foundation
-- **Primary Protocol**: Emergency Severity Index (ESI) v4 (AHRQ)
-- **Secondary Protocol**: WHO Mass Casualty Triage
-- **Validation**: Used in 1000+ hospitals, proven 20-30% wait time reduction
+1) Real‑time Clinical Workflow
+- Live queue with priority sorting, claim/handoff, and treatment start flow
+- Vitals capture (modal) and history
+- RBAC: roles for doctor, nurse, admin, staff, government
+- WebSocket sync so multiple users see updates instantly
 
-### Exact Clinical Rules
-| Vital Sign | Critical (RED) | Abnormal (YELLOW) | Borderline (GREEN) |
-|------------|---------------|-------------------|-------------------|
-| Heart Rate | <40 or >140 bpm | 50-59 or 121-140 bpm | 60-100 bpm |
-| Respiratory Rate | <8 or >30/min | 10-11 or 25-30/min | 12-20/min |
-| Oxygen Saturation | <90% | 90-93% | 94-95% |
-| Systolic BP | <90 or >200 mmHg | 100-119 or 181-200 mmHg | 120-180 mmHg |
-| Consciousness | Unresponsive (GCS <8) | Pain response (GCS 8-12) | Alert (GCS 15) |
+2) AI‑Enhanced Triage
+- Deterioration Predictor: risk_score, deterioration_probability, predicted escalation window, confidence
+- SHAP‑style (feature importance) outputs and AI reasoning array for transparency
+- Automatic re‑scoring when vitals or symptoms change
+- Graceful fallback to deterministic rules if ML service is unavailable
 
-**See [CLINICAL_PROTOCOL.md](CLINICAL_PROTOCOL.md) for complete medical documentation.**
+3) Mass Casualty Surge Forecaster
+- 6‑hour hourly patient arrival forecasts with lower/upper confidence bounds
+- Surge detection (dynamic thresholding using historical mean + 1.5*std)
+- Peak hour identification and automated recommendations (staffing, beds, transfers)
+- UI: Government → SurgeForecastPanel (chart + alerts + actionable cards)
 
----
+4) Government / City Mission Control
+- Cross‑hospital map with status, occupancy, and active alerts
+- Exportable incident reports and CSV for regulatory compliance
+- Automated playbooks: who to call, how many extra beds to prepare, transfer suggestions
 
-## Tech Stack
+5) Persistence & Demo Readiness
+- Default: SQLite triagelock.sqlite3 (committed and seeded) for reproducible demo runs
+- Config supports DATABASE_URL for PostgreSQL in production
 
-- **Runtime**: Node.js with TypeScript
-- **Framework**: Express.js
-- **Real-time**: Socket.IO (WebSocket)
-- **Database**: PostgreSQL with Knex.js
-- **Cache**: Redis
-- **Authentication**: JWT with bcrypt
-
----
-
-## Installation
-
-### Prerequisites
-- Node.js 18+
-- PostgreSQL 14+
-- Redis 6+
-
-### Setup
-
-1. **Install dependencies**
-```bash
-npm install
-```
-
-2. **Configure environment**
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your database and Redis credentials.
-
-3. **Run migrations**
-```bash
-npm run migrate
-```
-
-4. **Seed database** (optional - creates sample hospitals and users)
-```bash
-npm run seed
-```
-
-5. **Start development server**
-```bash
-npm run dev
-```
-
-6. **Build for production**
-```bash
-npm run build
-npm start
-```
+6) Observability & Safety
+- Health checks for ML services and AI proxies
+- Background jobs for escalations, wait‑time updates, surge monitoring
+- Audit‑ready triage history and AI prediction tables
 
 ---
 
-## API Endpoints
+## Quick Demo Checklist (Hackathon friendly)
 
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login
-- `GET /api/auth/profile` - Get user profile (authenticated)
+1. Backend (Express API)
+- From repo root:
+  - npm install
+  - npm run migrate
+  - npm run seed (optional — repo already includes triagelock.sqlite3)
+  - npm run dev
 
-### Patients
-- `POST /api/patients` - Register patient with triage
-- `GET /api/patients/queue` - Get emergency queue
-- `PUT /api/patients/:id/vitals` - Update vital signs
-- `PUT /api/patients/:id/status` - Update patient status
-- `POST /api/patients/check-escalations` - Check for auto-escalations
+2. ML Service (local) — required for AI features
+- cd ml-service
+- python -m venv .venv
+- .\.venv\Scripts\activate  # Windows
+- pip install -r requirements.txt
+- python app.py  # listens on 5001 by default
 
-### Hospitals
-- `GET /api/hospitals` - List all hospitals
-- `POST /api/hospitals` - Create hospital (admin/government)
-- `GET /api/hospitals/:id/stats` - Get hospital statistics
-- `PUT /api/hospitals/:id/beds` - Update bed availability
-- `PUT /api/hospitals/:id/staff` - Update staff availability
-- `GET /api/hospitals/:id/overload` - Check overload status
-- `GET /api/hospitals/:id/alerts` - Get active alerts
-- `PUT /api/hospitals/alerts/:id/acknowledge` - Acknowledge alert
+3. Frontend (client)
+- cd client
+- npm install
+- npm run dev
+- Open: http://localhost:5173 → /government (Government dashboard) and /doctor (Clinician view)
 
-### Analytics
-- `POST /api/analytics/reports/generate` - Generate daily report
-- `GET /api/analytics/reports` - Get incident reports
-- `GET /api/analytics/government/dashboard` - Government dashboard (government only)
-- `GET /api/analytics/crowd-surge` - Crowd surge monitoring
+Environment tips:
+- ML service URL: set ML_SERVICE_URL (default http://localhost:5001)
+- If NOT running ML service, AI features gracefully fall back to rule‑based behavior
 
 ---
 
-## WebSocket Events
+## Important Files & Locations
 
-### Client → Server
-- `join:hospital` - Join hospital room for updates
-- `join:government` - Join government dashboard
-
-### Server → Client
-- `queue:update` - Queue updated
-- `patient:registered` - New patient registered
-- `patient:escalated` - Patient priority escalated
-- `patient:status` - Patient status changed
-- `alert:new` - New alert created
-- `alert:critical` - Critical alert (also sent to government)
-- `hospital:stats` - Hospital statistics updated
-- `crowd:surge` - Crowd surge detected (government only)
+- Backend API: src/server.ts, src/routes, src/controllers
+- ML models & endpoints: ml-service/app.py, ml-service/surge_forecaster.py, ml-service/deterioration_predictor.py
+- Frontend UI: client/src/components (Doctor, Nurse, Government pages), client/src/pages/Government.tsx
+- Demo DB (seeded): triagelock.sqlite3 (committed for reproducibility in demos)
+- Seeds & migrations: src/database/migrations, src/database/seeds
 
 ---
 
-## Background Jobs
+## API & ML Endpoints (Summary)
 
-Automated tasks run via `node-cron`:
+AI / ML service (Flask) — used by backend aiService proxy:
+- GET /health — ML service health + model loaded flags
+- POST /api/predict/deterioration — returns explainable per‑patient prediction
+- POST /api/forecast/surge — returns 6‑hour surge forecast + recommendations
+- POST /api/nlp/extract — extracts symptoms/conditions from chief complaint
 
-- **Every 5 minutes**: Check patient escalations
-- **Every 10 minutes**: Update waiting times
-- **Every 15 minutes**: Check hospital overload
-- **Daily at 1:00 AM**: Generate incident reports
-- **Every 5 minutes**: Monitor crowd surges
-
----
-
-## Triage Algorithm
-
-### Priority Calculation
-
-**RED (Critical)** - Score ≥ 80
-- Unresponsive
-- Heart rate < 40 or > 140
-- Respiratory rate < 8 or > 30
-- Oxygen saturation < 90%
-- Critical symptoms (chest pain, severe bleeding, stroke)
-
-**YELLOW (Urgent)** - Score ≥ 50
-- Responds to pain only
-- Abnormal vitals
-- Urgent symptoms (moderate bleeding, severe pain)
-
-**GREEN (Standard)** - Score ≥ 20
-- Alert but with concerning symptoms
-- Stable vitals with moderate issues
-
-**BLUE (Minor)** - Score < 20
-- Alert and stable
-- Minor complaints
-
-### Auto-Escalation Rules
-
-1. **Time-based**:
-   - RED: Never (immediate treatment)
-   - YELLOW → RED: After 15 minutes
-   - GREEN → YELLOW: After 60 minutes
-   - BLUE → GREEN: After 120 minutes
-
-2. **Vital signs deterioration**:
-   - Critical vitals → RED
-   - Abnormal vitals → YELLOW
+Backend API (Express) — key routes:
+- POST /api/patients — register patient and run triage
+- GET /api/patients/queue — fetch live queue (used by clinician UI)
+- POST /api/patients/:id/assign — claim patient (doctor)
+- PUT /api/patients/:id/vitals — update vitals (triggers AI refresh)
+- POST /api/forecast/surge — proxied to ML service via aiService
 
 ---
 
-## Default Credentials (After Seeding)
+## Database & Persistence — Demo vs Production
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@cityhospital.com | admin123 |
-| Doctor | doctor@cityhospital.com | doctor123 |
-| Government | government@health.gov | gov123 |
-
-**⚠️ Change these in production!**
+- For hackathon demos, triagelock.sqlite3 is committed and seeded so every deploy/run is reproducible.
+- Caveat: many hosting providers use ephemeral filesystems — runtime writes to the committed SQLite may be lost on redeploy.
+- Recommended production path: provide a managed Postgres instance (set DATABASE_URL) and run migrations/seeds there; update knex config accordingly.
 
 ---
 
-## Database Schema
+## Architecture Overview
 
-### Core Tables
-- `hospitals` - Hospital information
-- `users` - System users
-- `patients` - Patient records
-- `vital_signs` - Vital signs history
-- `symptoms` - Patient symptoms
-- `risk_factors` - Risk factors
-- `triage_history` - Priority change history
-- `staff_availability` - Staff tracking
-- `alerts` - System alerts
-- `incident_reports` - Daily analytics
+Client (React) ↔ Backend API (Express + Knex + WebSocket) ↔ ML Service (Flask)
+
+- Client talks to Express for all app API needs; Express proxies ML calls to the ML service (aiService).
+- WebSocket broadcasts queue/alert changes to connected clients.
+- Background scheduler performs escalations, report generation, and surge checks.
 
 ---
 
-## Project Structure
+## Roadmap & Production Considerations
 
-```
-src/
-├── config/          # Database and Redis config
-├── controllers/     # Request handlers
-├── database/
-│   ├── migrations/  # Database schema
-│   └── seeds/       # Sample data
-├── middleware/      # Auth, validation, error handling
-├── models/          # (Reserved for future models)
-├── routes/          # API routes
-├── services/        # Business logic
-│   ├── triageEngine.ts      # Core triage algorithm
-│   ├── patientService.ts    # Patient management
-│   ├── hospitalService.ts   # Hospital management
-│   ├── analyticsService.ts  # Reports & analytics
-│   └── schedulerService.ts  # Background jobs
-├── utils/           # Helpers
-├── websocket/       # Real-time handlers
-└── server.ts        # Entry point
-```
+Short term (week‑by‑week for post‑hackathon):
+- Migrate demo data to managed Postgres and enable migrations CI
+- Improve AI model calibration and add model evaluation dashboards
+- Add audit logs and multi‑user handoff history
+
+Medium term:
+- Clinical validation with de‑identified hospital data
+- Operational pilot with 1–3 hospitals and Government dashboard integration
+- Performance hardening, rate limits, and SSO integration
 
 ---
 
-## Deployment
+## Contributing
 
-### Production Checklist
-- [ ] Change `JWT_SECRET` in `.env`
-- [ ] Update default passwords
-- [ ] Configure PostgreSQL connection pooling
-- [ ] Set up Redis persistence
-- [ ] Enable HTTPS
-- [ ] Configure CORS origins
-- [ ] Set up log rotation
-- [ ] Configure firewall rules
-- [ ] Set up monitoring (e.g., PM2)
+We welcome pull requests. For significant changes, please open an issue first to discuss your ideas.
 
-### Using PM2
-```bash
-npm install -g pm2
-npm run build
-pm2 start dist/server.js --name triagelock
-pm2 save
-pm2 startup
-```
+- Fork the repo, create a feature branch, and submit a PR against `main`.
+- Keep secrets out of the repo (do NOT commit .env files).
 
 ---
 
@@ -302,8 +151,9 @@ MIT
 
 ---
 
-## Support
+## Contact
 
-For issues or questions, please refer to the system administrator.
+Repo: https://github.com/A-I-C-A/T.R.I.A.G.E (branch: main)
+Demo lead: [Your name] • [email]
 
-**Built for emergencies. Designed for speed. Powered by logic.**
+If you want, a one‑page PDF summary for judges can be generated from this README.
