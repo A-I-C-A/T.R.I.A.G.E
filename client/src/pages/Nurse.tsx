@@ -302,17 +302,19 @@ export default function NurseView() {
       reasons.push("Pediatric Patient");
     }
     
-    // === PRIORITY ASSIGNMENT (Modified CTAS Scale) ===
-    let priority = "GREEN";
-    
-    if (score >= 10) {
-      priority = "RED"; // Resuscitation / Immediate
-    } else if (score >= 6) {
-      priority = "YELLOW"; // Emergent / Very Urgent
-    } else if (score >= 3) {
+    // === PRIORITY ASSIGNMENT (Adjusted thresholds to better match backend scale) ===
+    // Map the local score to triage categories conservatively so backend remains authoritative
+    let priority = "BLUE"; // default to least urgent for pre-check
+
+    // Conservative thresholds (tuned for the scaled-down nurse scoring system)
+    if (score >= 25) {
+      priority = "RED"; // Immediate
+    } else if (score >= 15) {
       priority = "YELLOW"; // Urgent
+    } else if (score >= 7) {
+      priority = "GREEN"; // Standard
     } else {
-      priority = "GREEN"; // Less Urgent / Non-Urgent
+      priority = "BLUE"; // Minor
     }
 
     // Only use local priority for display before backend response
@@ -753,6 +755,7 @@ export default function NurseView() {
                 <div className={`inline-flex items-center justify-center w-48 h-48 rounded-full border-8 text-5xl font-black tracking-tighter mb-6 animate-pulse
                   ${triageResult.priority === 'RED' ? 'border-triage-red bg-triage-red text-white shadow-[0_0_60px_rgba(220,38,38,0.8)]' : 
                     triageResult.priority === 'YELLOW' ? 'border-triage-yellow bg-triage-yellow text-black shadow-[0_0_60px_rgba(251,191,36,0.8)]' : 
+                    triageResult.priority === 'BLUE' ? 'border-triage-blue bg-triage-blue text-white shadow-[0_0_60px_rgba(59,130,246,0.8)]' : 
                     'border-triage-green bg-triage-green text-white shadow-[0_0_60px_rgba(16,185,129,0.8)]'}`}
                 >
                   {triageResult.priority}
