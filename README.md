@@ -2,8 +2,6 @@
 
 **Real-time Triage, AI-Assisted Patient Safety & Surge Intelligence**
 
-[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://triage-production-9233.up.railway.app/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > A full-stack, production-minded platform for emergency triage, hospital load management, and mass-casualty surge response.
 
