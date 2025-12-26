@@ -46,9 +46,9 @@ export interface TriageResult {
 }
 
 export class TriageEngine {
-  private static readonly CRITICAL_THRESHOLD = 80;
-  private static readonly HIGH_THRESHOLD = 50;
-  private static readonly MODERATE_THRESHOLD = 20;
+  private static readonly CRITICAL_THRESHOLD = 40;
+  private static readonly HIGH_THRESHOLD = 25;
+  private static readonly MODERATE_THRESHOLD = 10;
 
   public static async calculatePriorityWithAI(input: TriageInput, patientId?: number, waitingTime: number = 0): Promise<TriageResult> {
     // Get rule-based result first (ALWAYS runs)
@@ -109,14 +109,10 @@ export class TriageEngine {
       priority = 'YELLOW';
       recommendedActions.push('Urgent care needed within 30 minutes');
       recommendedActions.push('Continuous monitoring');
-    } else if (score >= this.MODERATE_THRESHOLD) {
+    } else {
       priority = 'GREEN';
       recommendedActions.push('Standard care - within 2 hours');
       recommendedActions.push('Regular vital checks');
-    } else {
-      priority = 'BLUE';
-      recommendedActions.push('Minor condition - can wait');
-      recommendedActions.push('Self-care advice applicable');
     }
 
     return { priority, score, reasons, recommendedActions, recommendedSpecialty };
@@ -187,6 +183,15 @@ export class TriageEngine {
       } else if (vitals.systolicBP > 140) {
         score += 12;
         reasons.push(`Elevated blood pressure: ${vitals.systolicBP}/${vitals.diastolicBP} mmHg`);
+      }
+    }
+    if (vitals.diastolicBP !== undefined) {
+      if (vitals.diastolicBP < 60 || vitals.diastolicBP > 120) {
+        score += 20;
+        reasons.push(`Critical blood pressure - diastolic: ${vitals.diastolicBP} mmHg`);
+      } else if (vitals.diastolicBP < 70 || vitals.diastolicBP > 90) {
+        score += 10;
+        reasons.push(`Abnormal blood pressure - diastolic: ${vitals.diastolicBP} mmHg`);
       }
     }
 
@@ -299,14 +304,14 @@ export class TriageEngine {
 
     const highRiskConditions = [
       'cardiac', 'respiratory', 'diabetes', 'immunocompromised',
-      'pregnancy', 'cancer', 'organ transplant', 'renal failure'
+      'pregnancy', 'cancer', 'organ transplant', 'renal failure', 'heart disease', 'coronary', 'stroke', 'hypertension', 'copd', 'asthma'
     ];
 
     for (const risk of riskFactors) {
       const lowerFactor = risk.factor.toLowerCase();
 
       if (highRiskConditions.some(hr => lowerFactor.includes(hr))) {
-        score += 12;
+        score += 20;
         reasons.push(`High-risk condition: ${risk.factor}`);
       } else {
         score += 5;
