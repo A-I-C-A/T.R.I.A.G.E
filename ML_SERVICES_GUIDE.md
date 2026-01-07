@@ -1,5 +1,5 @@
 # AI/ML Services - Complete Technical Guide
-**TRIAGELOCK Machine Learning Components**
+**TRIAGELOCK Machine Learning Componen1ts**
 
 ---
 
