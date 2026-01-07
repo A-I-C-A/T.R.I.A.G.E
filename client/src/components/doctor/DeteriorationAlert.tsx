@@ -66,7 +66,8 @@ export const DeteriorationAlert: React.FC<DeteriorationAlertProps> = ({
     return 'bg-green-100 dark:bg-green-900/20 border-green-300 dark:border-green-700';
   };
 
-  const showWarning = prediction.predictedPriority !== currentPriority || prediction.riskScore >= 60;
+  // Show for all patients (always display AI insights)
+  const showWarning = true;
 
   return (
     <AnimatePresence>
@@ -124,20 +125,26 @@ export const DeteriorationAlert: React.FC<DeteriorationAlertProps> = ({
                 </motion.div>
               )}
 
-              {/* AI Reasoning */}
-              {prediction.aiReasoning.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">AI Analysis:</p>
-                  <ul className="space-y-1">
-                    {prediction.aiReasoning.slice(0, showDetails ? undefined : 3).map((reason, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm">
-                        <TrendingUp className="h-4 w-4 mt-0.5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
-                        <span>{reason}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {/* AI Reasoning - Always Show */}
+              <div className="space-y-2 p-3 rounded-lg bg-white dark:bg-gray-800 border border-blue-300 dark:border-blue-700">
+                <p className="text-sm font-semibold flex items-center gap-2">
+                  <Brain className="h-4 w-4" />
+                  Why AI Predicted This Risk:
+                </p>
+                <ul className="space-y-1">
+                  {prediction.aiReasoning.slice(0, showDetails ? undefined : 3).map((reason, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm">
+                      <TrendingUp className="h-4 w-4 mt-0.5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                      <span>{reason}</span>
+                    </li>
+                  ))}
+                </ul>
+                {prediction.aiReasoning.length > 3 && !showDetails && (
+                  <p className="text-xs text-gray-500 italic">
+                    +{prediction.aiReasoning.length - 3} more reasons (click "Show Details" below)
+                  </p>
+                )}
+              </div>
 
               {/* Toggle Details */}
               <Button

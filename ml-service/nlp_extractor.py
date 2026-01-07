@@ -87,6 +87,7 @@ class NLPExtractor:
         
         severity_order = ['mild', 'moderate', 'severe', 'critical']
         
+        # 1. Extract from keyword dictionary
         for keyword, info in self.symptom_keywords.items():
             if keyword in text_lower:
                 extracted_symptoms.append({
@@ -100,6 +101,48 @@ class NLPExtractor:
                 # Update max severity
                 if severity_order.index(info['severity']) > severity_order.index(max_severity):
                     max_severity = info['severity']
+        
+        # 2. NEW: Extract potential symptoms from text using word patterns
+        # Look for medical-sounding words not in dictionary
+        words = text_lower.split()
+        potential_symptoms = []
+        
+        # Common symptom patterns
+        symptom_patterns = [
+            'pain', 'ache', 'sore', 'hurt', 'discomfort',
+            'swelling', 'swollen', 'inflammation', 'inflamed',
+            'rash', 'itching', 'burning', 'tingling',
+            'discharge', 'bleeding', 'bruising',
+            'numbness', 'stiffness', 'cramping'
+        ]
+        
+        for i, word in enumerate(words):
+            # Check if word matches symptom patterns
+            for pattern in symptom_patterns:
+                if pattern in word or word in pattern:
+                    # Try to get context (body part or descriptor)
+                    context = []
+                    if i > 0:
+                        context.append(words[i-1])
+                    if i < len(words) - 1:
+                        context.append(words[i+1])
+                    
+                    symptom_text = ' '.join(context + [word]).strip()
+                    
+                    # Only add if not already in extracted symptoms
+                    if not any(symptom_text.lower() in s['symptom'].lower() for s in extracted_symptoms):
+                        potential_symptoms.append({
+                            'symptom': symptom_text.title(),
+                            'severity': 'moderate',  # Default to moderate
+                            'category': 'general',
+                            'confidence': 0.50  # Lower confidence for auto-detected
+                        })
+        
+        # 3. Add potential symptoms that aren't already captured
+        for ps in potential_symptoms[:5]:  # Limit to 5 auto-detected symptoms
+            if not any(ps['symptom'].lower() in s['symptom'].lower() for s in extracted_symptoms):
+                extracted_symptoms.append(ps)
+                symptom_categories.add(ps['category'])
         
         # Extract conditions
         extracted_conditions = []
