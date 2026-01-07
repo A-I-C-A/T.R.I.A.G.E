@@ -148,24 +148,95 @@ export class HospitalController {
 
   static async createHospital(req: AuthRequest, res: Response) {
     try {
-      const { name, location, contact, totalBeds, icuBeds } = req.body;
+      const { 
+        name, 
+        location, 
+        contact, 
+        total_beds, 
+        icu_beds,
+        general_ward_beds,
+        ventilators,
+        available_beds,
+        available_icu_beds,
+        staff
+      } = req.body;
 
+      // Create hospital record
       const [hospital] = await db('hospitals')
         .insert({
           name,
           location,
-          contact,
-          total_beds: totalBeds,
-          available_beds: totalBeds,
-          icu_beds: icuBeds,
-          available_icu_beds: icuBeds,
+          contact: contact || null,
+          total_beds: total_beds || 0,
+          available_beds: available_beds || total_beds || 0,
+          icu_beds: icu_beds || 0,
+          available_icu_beds: available_icu_beds || icu_beds || 0,
+          general_ward_beds: general_ward_beds || 0,
+          ventilators: ventilators || 0,
           is_active: true
         })
         .returning('*');
 
+      // Store staff information if provided
+      if (staff && hospital.id) {
+        const staffData = [];
+        
+        // Doctors by specialty
+        if (staff.doctors) {
+          for (const [specialty, count] of Object.entries(staff.doctors)) {
+            if (count && typeof count === 'number' && count > 0) {
+              staffData.push({
+                hospital_id: hospital.id,
+                role: 'doctor',
+                specialty: specialty,
+                total_count: count,
+                available_count: count,
+                is_active: true
+              });
+            }
+          }
+        }
+        
+        // Nurses
+        if (staff.nurses) {
+          if (staff.nurses.total) {
+            staffData.push({
+              hospital_id: hospital.id,
+              role: 'nurse',
+              specialty: 'general',
+              total_count: staff.nurses.total,
+              available_count: staff.nurses.total,
+              is_active: true
+            });
+          }
+          if (staff.nurses.emergency) {
+            staffData.push({
+              hospital_id: hospital.id,
+              role: 'nurse',
+              specialty: 'emergency',
+              total_count: staff.nurses.emergency,
+              available_count: staff.nurses.emergency,
+              is_active: true
+            });
+          }
+        }
+        
+        // Insert staff data if any
+        if (staffData.length > 0) {
+          await db('hospital_staff').insert(staffData);
+        }
+      }
+
+      logger.info('Hospital created successfully', { hospitalId: hospital.id, name: hospital.name });
       res.status(201).json(hospital);
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Create hospital error:', error);
+      
+      // Handle duplicate hospital name
+      if (error.code === 'SQLITE_CONSTRAINT' || error.code === '23505') {
+        return res.status(400).json({ error: 'Hospital with this name already exists' });
+      }
+      
       res.status(500).json({ error: 'Failed to create hospital' });
     }
   }

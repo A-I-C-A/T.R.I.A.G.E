@@ -17,10 +17,13 @@ router.post(
   authenticate,
   authorize('admin', 'government'),
   [
-    body('name').notEmpty(),
-    body('location').notEmpty(),
-    body('totalBeds').isNumeric(),
-    body('icuBeds').isNumeric(),
+    body('name').notEmpty().withMessage('Hospital name is required'),
+    body('location').notEmpty().withMessage('Location is required'),
+    body('total_beds').isNumeric().withMessage('Total beds must be a number'),
+    body('icu_beds').optional().isNumeric(),
+    body('general_ward_beds').optional().isNumeric(),
+    body('ventilators').optional().isNumeric(),
+    body('staff').optional().isObject(),
     validate
   ],
   HospitalController.createHospital

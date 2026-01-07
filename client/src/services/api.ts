@@ -115,14 +115,17 @@ export const hospitalAPI = {
   getHospital: (id: string) =>
     api.get(`/hospitals/${id}`),
   
+  createHospital: (data: any) =>
+    api.post('/hospitals', data),
+  
   updateCapacity: (id: string, data: any) =>
     api.patch(`/hospitals/${id}/capacity`, data),
   
   getStats: (id: string) =>
     api.get(`/hospitals/${id}/stats`),
   
-  updateBeds: (id: string, availableBeds: number) =>
-    api.put(`/hospitals/${id}/beds`, { availableBeds }),
+  updateBeds: (id: string | number, data: { available_beds: number; available_icu_beds: number }) =>
+    api.patch(`/hospitals/${id}/capacity`, data),
   
   updateStaff: (id: string, role: string, availableCount: number, totalCount: number) =>
     api.put(`/hospitals/${id}/staff`, { role, availableCount, totalCount }),

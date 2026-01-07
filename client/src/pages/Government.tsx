@@ -7,11 +7,17 @@ import {
   AlertOctagon, 
   LogOut,
   Download,
-  Filter
+  Filter,
+  Plus,
+  Building
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useNavigate } from "react-router";
 import { useAuth } from "@/hooks/use-auth";
@@ -27,6 +33,25 @@ export default function GovernmentView() {
   const [hospitals, setHospitals] = useState<any[]>([]);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  
+  // Hospital registration form
+  const [isAddHospitalOpen, setIsAddHospitalOpen] = useState(false);
+  const [newHospital, setNewHospital] = useState({
+    name: '',
+    location: '',
+    totalBeds: '',
+    generalWardBeds: '',
+    icuBeds: '',
+    ventilators: '',
+    emergencyDoctors: '',
+    cardiologyDoctors: '',
+    neurologyDoctors: '',
+    orthopedicsDoctors: '',
+    generalDoctors: '',
+    nurses: '',
+    emergencyNurses: ''
+  });
 
   useEffect(() => {
     loadGovernmentData();
@@ -66,14 +91,25 @@ export default function GovernmentView() {
           : occupancy >= 75 ? 'BUSY' 
           : 'NORMAL';
         
-        // Position hospitals on map (simplified grid distribution)
-        const positions = [
-          { x: 25, y: 30 },
-          { x: 65, y: 25 },
-          { x: 50, y: 70 },
-          { x: 20, y: 65 },
-          { x: 75, y: 60 }
-        ];
+        // Dynamic positioning - distribute hospitals across the map without overlap
+        // Use a grid-based approach with some randomness for natural look
+        const totalHospitals = hospitalList.length;
+        const cols = Math.ceil(Math.sqrt(totalHospitals));
+        const rows = Math.ceil(totalHospitals / cols);
+        
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        
+        // Base position from grid (with margins: 15% to 85% of map area)
+        const baseX = 15 + (col * (70 / Math.max(cols - 1, 1)));
+        const baseY = 15 + (row * (70 / Math.max(rows - 1, 1)));
+        
+        // Add small random offset for natural distribution (±5%)
+        const randomOffsetX = (Math.random() - 0.5) * 8;
+        const randomOffsetY = (Math.random() - 0.5) * 8;
+        
+        const x = Math.min(85, Math.max(10, baseX + randomOffsetX));
+        const y = Math.min(85, Math.max(10, baseY + randomOffsetY));
         
         return {
           ...h,
@@ -81,8 +117,8 @@ export default function GovernmentView() {
           status,
           wait: '0h 30m', // Would come from analytics
           surge: occupancy >= 90,
-          x: positions[index % positions.length].x,
-          y: positions[index % positions.length].y
+          x,
+          y
         };
       });
 
@@ -155,6 +191,96 @@ export default function GovernmentView() {
     return lines.join('\n');
   };
 
+  const handleAddHospital = async () => {
+    try {
+      // Validation
+      if (!newHospital.name || !newHospital.location || !newHospital.totalBeds) {
+        toast.error('Please fill all required fields (Name, Location, Total Beds)');
+        return;
+      }
+
+      const totalBeds = parseInt(newHospital.totalBeds);
+      const generalWardBeds = parseInt(newHospital.generalWardBeds) || 0;
+      const icuBeds = parseInt(newHospital.icuBeds) || 0;
+
+      // Validate bed counts
+      if (generalWardBeds + icuBeds > totalBeds) {
+        toast.error('General Ward + ICU beds cannot exceed Total Beds');
+        return;
+      }
+
+      const response = await hospitalAPI.createHospital({
+        name: newHospital.name,
+        location: newHospital.location,
+        total_beds: totalBeds,
+        general_ward_beds: generalWardBeds,
+        icu_beds: icuBeds,
+        ventilators: parseInt(newHospital.ventilators) || 0,
+        available_beds: totalBeds,
+        available_icu_beds: icuBeds,
+        staff: {
+          doctors: {
+            emergency: parseInt(newHospital.emergencyDoctors) || 0,
+            cardiology: parseInt(newHospital.cardiologyDoctors) || 0,
+            neurology: parseInt(newHospital.neurologyDoctors) || 0,
+            orthopedics: parseInt(newHospital.orthopedicsDoctors) || 0,
+            general: parseInt(newHospital.generalDoctors) || 0,
+          },
+          nurses: {
+            total: parseInt(newHospital.nurses) || 0,
+            emergency: parseInt(newHospital.emergencyNurses) || 0,
+          }
+        }
+      });
+
+      toast.success(`Hospital "${newHospital.name}" registered successfully!`);
+      
+      // Reset form
+      setNewHospital({ 
+        name: '', 
+        location: '', 
+        totalBeds: '', 
+        generalWardBeds: '',
+        icuBeds: '',
+        ventilators: '',
+        emergencyDoctors: '',
+        cardiologyDoctors: '',
+        neurologyDoctors: '',
+        orthopedicsDoctors: '',
+        generalDoctors: '',
+        nurses: '',
+        emergencyNurses: ''
+      });
+      setIsAddHospitalOpen(false);
+      
+      // Reload data
+      loadGovernmentData();
+    } catch (error: any) {
+      console.error('Failed to register hospital:', error);
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to register hospital';
+      toast.error(`Failed to register hospital: ${errorMessage}`);
+    }
+  };
+
+  const handleUpdateHospitalBeds = async (hospitalId: number, field: 'beds' | 'icu', value: number) => {
+    try {
+      const hospital = hospitals.find(h => h.id === hospitalId);
+      if (!hospital) return;
+
+      const updateData = field === 'beds' 
+        ? { available_beds: value, available_icu_beds: hospital.available_icu_beds }
+        : { available_beds: hospital.available_beds, available_icu_beds: value };
+
+      await hospitalAPI.updateBeds(hospitalId, updateData);
+      
+      toast.success('Hospital capacity updated');
+      loadGovernmentData();
+    } catch (error) {
+      console.error('Failed to update hospital:', error);
+      toast.error('Failed to update hospital capacity');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -202,7 +328,21 @@ export default function GovernmentView() {
         </div>
       </header>
 
-      <div className="flex-1 p-6 overflow-hidden flex flex-col gap-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+        <TabsList className="mx-6 mt-4 w-fit">
+          <TabsTrigger value="dashboard" className="gap-2">
+            <Map className="w-4 h-4" />
+            Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="hospitals" className="gap-2">
+            <Building className="w-4 h-4" />
+            Hospital Management
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Dashboard Tab */}
+        <TabsContent value="dashboard" className="flex-1 p-6 overflow-auto space-y-6">
+
         {/* Top Section: Map & Stats */}
         <div className="grid grid-cols-3 gap-6 h-[400px]">
           {/* Interactive Map */}
@@ -494,7 +634,281 @@ export default function GovernmentView() {
             </Card>
           </div>
         </div>
-      </div>
+        </TabsContent>
+
+        {/* Hospital Management Tab */}
+        <TabsContent value="hospitals" className="flex-1 p-6 overflow-auto">
+          <div className="space-y-6">
+            {/* Header with Add Hospital Button */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold">Hospital Network Management</h2>
+                <p className="text-muted-foreground">Register and manage hospitals in the city network</p>
+              </div>
+              <Dialog open={isAddHospitalOpen} onOpenChange={setIsAddHospitalOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Register New Hospital
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Register New Hospital</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-6">
+                    {/* Basic Information */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-sm text-muted-foreground">Basic Information</h3>
+                      <div>
+                        <Label htmlFor="hospital-name">Hospital Name *</Label>
+                        <Input
+                          id="hospital-name"
+                          placeholder="e.g., Apollo Hospital"
+                          value={newHospital.name}
+                          onChange={(e) => setNewHospital({ ...newHospital, name: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="hospital-location">Location *</Label>
+                        <Input
+                          id="hospital-location"
+                          placeholder="e.g., Hyderabad, Telangana"
+                          value={newHospital.location}
+                          onChange={(e) => setNewHospital({ ...newHospital, location: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bed Capacity */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-sm text-muted-foreground">Bed Capacity</h3>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="total-beds">Total Beds *</Label>
+                          <Input
+                            id="total-beds"
+                            type="number"
+                            placeholder="500"
+                            value={newHospital.totalBeds}
+                            onChange={(e) => setNewHospital({ ...newHospital, totalBeds: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="general-ward-beds">General Ward Beds</Label>
+                          <Input
+                            id="general-ward-beds"
+                            type="number"
+                            placeholder="400"
+                            value={newHospital.generalWardBeds}
+                            onChange={(e) => setNewHospital({ ...newHospital, generalWardBeds: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="icu-beds">ICU Beds</Label>
+                          <Input
+                            id="icu-beds"
+                            type="number"
+                            placeholder="50"
+                            value={newHospital.icuBeds}
+                            onChange={(e) => setNewHospital({ ...newHospital, icuBeds: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 gap-4">
+                        <div>
+                          <Label htmlFor="ventilators">Ventilators</Label>
+                          <Input
+                            id="ventilators"
+                            type="number"
+                            placeholder="30"
+                            value={newHospital.ventilators}
+                            onChange={(e) => setNewHospital({ ...newHospital, ventilators: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Medical Staff - Doctors */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-sm text-muted-foreground">Medical Staff - Doctors by Specialty</h3>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="emergency-doctors">Emergency</Label>
+                          <Input
+                            id="emergency-doctors"
+                            type="number"
+                            placeholder="10"
+                            value={newHospital.emergencyDoctors}
+                            onChange={(e) => setNewHospital({ ...newHospital, emergencyDoctors: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="cardiology-doctors">Cardiology</Label>
+                          <Input
+                            id="cardiology-doctors"
+                            type="number"
+                            placeholder="8"
+                            value={newHospital.cardiologyDoctors}
+                            onChange={(e) => setNewHospital({ ...newHospital, cardiologyDoctors: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="neurology-doctors">Neurology</Label>
+                          <Input
+                            id="neurology-doctors"
+                            type="number"
+                            placeholder="6"
+                            value={newHospital.neurologyDoctors}
+                            onChange={(e) => setNewHospital({ ...newHospital, neurologyDoctors: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="orthopedics-doctors">Orthopedics</Label>
+                          <Input
+                            id="orthopedics-doctors"
+                            type="number"
+                            placeholder="5"
+                            value={newHospital.orthopedicsDoctors}
+                            onChange={(e) => setNewHospital({ ...newHospital, orthopedicsDoctors: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="general-doctors">General Medicine</Label>
+                          <Input
+                            id="general-doctors"
+                            type="number"
+                            placeholder="15"
+                            value={newHospital.generalDoctors}
+                            onChange={(e) => setNewHospital({ ...newHospital, generalDoctors: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Medical Staff - Nurses */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-sm text-muted-foreground">Medical Staff - Nurses</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="nurses">Total Nurses</Label>
+                          <Input
+                            id="nurses"
+                            type="number"
+                            placeholder="100"
+                            value={newHospital.nurses}
+                            onChange={(e) => setNewHospital({ ...newHospital, nurses: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="emergency-nurses">Emergency Nurses</Label>
+                          <Input
+                            id="emergency-nurses"
+                            type="number"
+                            placeholder="25"
+                            value={newHospital.emergencyNurses}
+                            onChange={(e) => setNewHospital({ ...newHospital, emergencyNurses: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-4 border-t">
+                      <Button variant="outline" className="flex-1" onClick={() => setIsAddHospitalOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button className="flex-1" onClick={handleAddHospital}>
+                        Register Hospital
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Hospitals Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Registered Hospitals ({hospitals.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Hospital Name</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead className="text-center">Total Beds</TableHead>
+                      <TableHead className="text-center">Available Beds</TableHead>
+                      <TableHead className="text-center">ICU Beds</TableHead>
+                      <TableHead className="text-center">Available ICU</TableHead>
+                      <TableHead className="text-center">Occupancy</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {hospitals.map((hospital) => (
+                      <TableRow key={hospital.id}>
+                        <TableCell className="font-medium">{hospital.name}</TableCell>
+                        <TableCell className="text-muted-foreground">{hospital.location}</TableCell>
+                        <TableCell className="text-center">{hospital.total_beds}</TableCell>
+                        <TableCell className="text-center">
+                          <Input
+                            type="number"
+                            className="w-20 h-8 text-center"
+                            value={hospital.available_beds}
+                            onChange={(e) => handleUpdateHospitalBeds(hospital.id, 'beds', parseInt(e.target.value) || 0)}
+                            max={hospital.total_beds}
+                            min={0}
+                          />
+                        </TableCell>
+                        <TableCell className="text-center">{hospital.icu_beds}</TableCell>
+                        <TableCell className="text-center">
+                          <Input
+                            type="number"
+                            className="w-20 h-8 text-center"
+                            value={hospital.available_icu_beds}
+                            onChange={(e) => handleUpdateHospitalBeds(hospital.id, 'icu', parseInt(e.target.value) || 0)}
+                            max={hospital.icu_beds}
+                            min={0}
+                          />
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className={`font-mono font-bold ${
+                            hospital.occupancy >= 90 ? 'text-triage-red' :
+                            hospital.occupancy >= 75 ? 'text-triage-yellow' :
+                            'text-triage-green'
+                          }`}>
+                            {hospital.occupancy}%
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            hospital.status === 'CRITICAL' ? 'bg-triage-red/20 text-triage-red' :
+                            hospital.status === 'BUSY' ? 'bg-triage-yellow/20 text-triage-yellow' :
+                            'bg-triage-green/20 text-triage-green'
+                          }`}>
+                            {hospital.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toast.info(`Viewing details for ${hospital.name}`)}
+                          >
+                            View Details
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
