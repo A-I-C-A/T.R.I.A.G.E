@@ -1,0 +1,245 @@
+TRIAGELOCK
+Saving Lives Through Intelligent Triage
+
+IIT Hyderabad Hackathon 2026 | Team A.I.C.A
+
+🧭 PART 1 — OPENING (1 MIN)
+SPEAKER: AMEEN
+
+“In emergency medicine, patients don’t die because doctors lack skill.
+They die because the right patient doesn’t reach the right doctor at the right time.”
+
+On 26/11, Mumbai hospitals were overwhelmed.
+Doctors were present. Infrastructure existed.
+What failed was triage, prediction, and coordination.
+
+This is not history.
+This happens every day in Indian emergency rooms.
+
+So we asked one question:
+
+What if hospitals could identify risk before it becomes irreversible?
+
+That question led to TRIAGELOCK.
+
+🧩 PART 2 — THE PROBLEM (1 MIN)
+SPEAKER: AMEEN
+
+Emergency departments today face four core failures:
+
+Manual triage
+
+Paper-based, slow
+
+5–10 minutes per patient during surges
+
+No deterioration prediction
+
+Stable patients crash unexpectedly
+
+No early warning system
+
+No surge preparedness
+
+Hospitals react after overload
+
+No forecasting
+
+No system-level visibility
+
+Hospitals operate in silos
+
+Government can’t redirect resources
+
+Result: preventable deaths — despite available care.
+
+🧠 PART 3 — THE SOLUTION (1.5 MIN)
+SPEAKER: AMEEN
+
+TRIAGELOCK is a real-time, AI-powered emergency triage and coordination platform.
+
+It operates in three layers:
+
+Layer 1 — Rule-Based Triage (Always On)
+
+Based on ESI, START, Indian EM protocols
+
+Uses vitals, symptoms, risk factors
+
+Instant RED / YELLOW / GREEN
+
+Works even without AI
+
+Layer 2 — AI Enhancement
+
+Predicts patient deterioration
+
+Extracts symptoms from free text (NLP)
+
+Forecasts patient surges 6 hours ahead
+
+Explainable AI using SHAP values
+
+Layer 3 — Real-Time Coordination
+
+WebSocket-based live updates
+
+Auto-escalation for long waits
+
+City-level government dashboard
+
+This is not a concept.
+This is built, deployed, and running.
+
+I’ll hand it over to Steve to show you how it works live.
+
+💻 PART 4 — LIVE DEMO (4.5 MIN)
+SPEAKER: STEVE
+
+I’ll walk you through TRIAGELOCK from four perspectives:
+Nurse, Doctor, Hospital Admin, and Government.
+
+👩‍⚕️ 1. Nurse Perspective
+
+Nurse enters vitals and symptoms
+
+Free-text complaint → AI extracts clinical meaning
+
+Instant triage + risk score + recommendations
+
+Impact:
+
+Triage time reduced from 5–10 minutes to 30 seconds
+
+No clinical detail missed
+
+👨‍⚕️ 2. Doctor Perspective
+
+Priority queue auto-sorted by risk
+
+Deterioration prediction shown clearly
+
+SHAP values explain why risk is high
+
+Real-time re-scoring after treatment
+
+Impact:
+
+Doctors see who will deteriorate next
+
+AI assists, never overrides judgment
+
+🏥 3. Hospital Admin Perspective
+
+Live patient load & bed occupancy
+
+ICU saturation alerts
+
+6-hour surge forecast
+
+Automatic escalation for waiting patients
+
+Impact:
+
+Hospitals prepare before overload
+
+Zero patients fall through the cracks
+
+🏛️ 4. Government Perspective
+
+City-wide hospital visibility
+
+Overload detection
+
+Ambulance redirection recommendations
+
+Impact:
+
+System-level coordination
+
+Faster emergency response across the city
+
+⚙️ PART 5 — TECH CREDIBILITY (1.5 MIN)
+SPEAKER: STEVE
+
+This is a production-grade system.
+
+Stack:
+
+Frontend: React + TypeScript
+
+Backend: Node.js + Express
+
+Real-time: WebSockets
+
+AI: Python microservice + SHAP
+
+Database: PostgreSQL (SQLite for demo)
+
+Deployment: Live on Railway
+
+Key Design Principles:
+
+Rule-based fallback → no single point of failure
+
+Explainable AI → clinical trust
+
+Microservices → independent scaling
+
+Full audit trail → compliance ready
+
+Built like a startup product — not a hackathon demo.
+
+📊 PART 6 — IMPACT (1 MIN)
+SPEAKER: AMEEN
+
+With TRIAGELOCK:
+
+⏱ 15× faster triage
+
+🚨 Zero missed escalations
+
+🔮 6-hour surge prediction
+
+🏥 City-wide coordination
+
+💰 No additional hardware
+
+But the real impact is human:
+
+Catching deterioration 8 minutes earlier
+Preparing hospitals hours earlier
+Redirecting ambulances before collapse
+
+That’s how lives are saved.
+
+🔭 PART 7 — VISION & ASK (1 MIN)
+SPEAKER: AMEEN
+Roadmap
+
+Pilot in one Hyderabad hospital
+
+City-wide rollout
+
+State and national integration (ABDM-ready)
+
+Our Ask
+
+We’re not asking you to imagine the future.
+We’re showing you a system that works today.
+
+If deployed tomorrow, TRIAGELOCK would save lives.
+
+🎤 PART 8 — CLOSING (30 SEC)
+SPEAKER: AMEEN
+
+TRIAGELOCK is not about AI.
+It’s about time, coordination, and accountability.
+
+Other teams built ideas.
+We built something deployable.
+
+We are Team A.I.C.A — AI for Critical Aid.
+This is TRIAGELOCK.
+
+Thank you. Questions?

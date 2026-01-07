@@ -19,10 +19,11 @@ export class PatientService {
     const trx = await db.transaction();
 
     try {
-      const triageResult = TriageEngine.calculatePriority({
+      // Use AI-enhanced triage with deterioration prediction
+      const triageResult = await TriageEngine.calculatePriorityWithAI({
         ...input.triageInput,
         age: input.age
-      });
+      }, undefined, 0);
 
       // Use nurse's preferred specialty if provided, otherwise use auto-determined
       const finalSpecialty = input.preferredSpecialty || triageResult.recommendedSpecialty || 'General';
@@ -93,6 +94,24 @@ export class PatientService {
           severity: 'critical',
           message: `CRITICAL patient registered: ${triageResult.reasons.join(', ')}`,
           acknowledged: false
+        });
+      }
+
+      // Save AI prediction to database if available
+      if (triageResult.aiPrediction) {
+        await trx('ai_predictions').insert({
+          patient_id: patient.id,
+          model_type: 'deterioration',
+          risk_score: triageResult.aiPrediction.riskScore,
+          deterioration_probability: triageResult.aiPrediction.deteriorationProbability,
+          predicted_priority: triageResult.aiPrediction.predictedPriority,
+          predicted_escalation_time: triageResult.aiPrediction.predictedEscalationTime 
+            ? new Date(triageResult.aiPrediction.predictedEscalationTime)
+            : null,
+          confidence: triageResult.aiPrediction.confidence,
+          reasoning: JSON.stringify(triageResult.aiPrediction.aiReasoning),
+          shap_values: JSON.stringify(triageResult.aiPrediction.shapValues),
+          model_version: 'rule-based-v1.0.0'
         });
       }
 
