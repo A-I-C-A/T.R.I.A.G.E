@@ -11,6 +11,8 @@ export class PatientController {
       const { patientId, name, age, gender, contact, triageInput } = req.body;
       const hospitalId = req.user?.hospitalId;
 
+      logger.info('Patient registration attempt:', { patientId, hospitalId, hasUser: !!req.user });
+
       if (!hospitalId) {
         return res.status(400).json({ error: 'Hospital ID required' });
       }
@@ -34,9 +36,13 @@ export class PatientController {
       websocketHandler.emitQueueUpdate(hospitalId, queue);
 
       res.status(201).json(result);
-    } catch (error) {
-      logger.error('Patient registration error:', error);
-      res.status(500).json({ error: 'Failed to register patient' });
+    } catch (error: any) {
+      logger.error('Patient registration error:', { 
+        error: error.message, 
+        stack: error.stack,
+        body: req.body 
+      });
+      res.status(500).json({ error: error.message || 'Failed to register patient' });
     }
   }
 
