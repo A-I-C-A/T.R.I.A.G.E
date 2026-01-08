@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import { PatientService } from '../services/patientService';
 import { websocketHandler } from '../websocket/handler';
 import logger from '../utils/logger';
+import db from '../config/database';
 
 export class PatientController {
   static async register(req: AuthRequest, res: Response) {
@@ -134,5 +135,3 @@ export class PatientController {
     }
   }
 }
-
-import db from '../config/database';
