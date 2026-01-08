@@ -9,7 +9,8 @@ import {
   Download,
   Filter,
   Plus,
-  Building
+  Building,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +35,8 @@ export default function GovernmentView() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [selectedHospitalDetails, setSelectedHospitalDetails] = useState<any>(null);
+  const [isHospitalDetailsOpen, setIsHospitalDetailsOpen] = useState(false);
   
   // Hospital registration form
   const [isAddHospitalOpen, setIsAddHospitalOpen] = useState(false);
@@ -269,6 +272,11 @@ export default function GovernmentView() {
       console.error('Failed to update hospital:', error);
       toast.error('Failed to update hospital capacity');
     }
+  };
+
+  const handleShowHospitalDetails = (hospital: any) => {
+    setSelectedHospitalDetails(hospital);
+    setIsHospitalDetailsOpen(true);
   };
 
   if (isLoading) {
@@ -548,7 +556,19 @@ export default function GovernmentView() {
                         onMouseEnter={() => setHoveredHospital(h.name)}
                         onMouseLeave={() => setHoveredHospital(null)}
                       >
-                        <TableCell className="font-medium">{h.name || 'Unknown'}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {h.name || 'Unknown'}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-primary/10"
+                              onClick={() => handleShowHospitalDetails(h)}
+                            >
+                              <Info className="w-4 h-4 text-primary" />
+                            </Button>
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                             h.status === "CRITICAL" ? "bg-triage-red/20 text-triage-red" :
@@ -899,6 +919,178 @@ export default function GovernmentView() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Hospital Details Dialog */}
+      <Dialog open={isHospitalDetailsOpen} onOpenChange={setIsHospitalDetailsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="w-5 h-5" />
+              {selectedHospitalDetails?.name || 'Hospital Details'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedHospitalDetails && (
+            <div className="space-y-6">
+              {/* Status Overview */}
+              <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Status</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                      selectedHospitalDetails.status === "CRITICAL" ? "bg-triage-red/20 text-triage-red" :
+                      selectedHospitalDetails.status === "BUSY" ? "bg-triage-yellow/20 text-triage-yellow" :
+                      "bg-triage-green/20 text-triage-green"
+                    }`}>
+                      {selectedHospitalDetails.status}
+                    </span>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Occupancy Rate</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{selectedHospitalDetails.occupancy}%</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Bed Capacity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Bed Capacity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">Total Beds</div>
+                      <div className="text-2xl font-bold">{selectedHospitalDetails.total_beds || 0}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">Available Beds</div>
+                      <div className="text-2xl font-bold text-triage-green">{selectedHospitalDetails.available_beds || 0}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">Occupied Beds</div>
+                      <div className="text-2xl font-bold text-triage-red">
+                        {(selectedHospitalDetails.total_beds || 0) - (selectedHospitalDetails.available_beds || 0)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 grid grid-cols-3 gap-4">
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">General Ward</div>
+                      <div className="text-xl font-semibold">{selectedHospitalDetails.general_ward_beds || 0}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">ICU Beds</div>
+                      <div className="text-xl font-semibold">{selectedHospitalDetails.icu_beds || 0}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground mb-1">Ventilators</div>
+                      <div className="text-xl font-semibold">{selectedHospitalDetails.ventilators || 0}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Staffing */}
+              {selectedHospitalDetails.staff && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Staffing</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-sm font-medium mb-2">Doctors by Specialty</div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          {selectedHospitalDetails.staff.doctors && (
+                            <>
+                              <div className="flex justify-between p-2 bg-secondary/30 rounded">
+                                <span className="text-muted-foreground">Emergency:</span>
+                                <span className="font-semibold">{selectedHospitalDetails.staff.doctors.emergency || 0}</span>
+                              </div>
+                              <div className="flex justify-between p-2 bg-secondary/30 rounded">
+                                <span className="text-muted-foreground">Cardiology:</span>
+                                <span className="font-semibold">{selectedHospitalDetails.staff.doctors.cardiology || 0}</span>
+                              </div>
+                              <div className="flex justify-between p-2 bg-secondary/30 rounded">
+                                <span className="text-muted-foreground">Neurology:</span>
+                                <span className="font-semibold">{selectedHospitalDetails.staff.doctors.neurology || 0}</span>
+                              </div>
+                              <div className="flex justify-between p-2 bg-secondary/30 rounded">
+                                <span className="text-muted-foreground">Orthopedics:</span>
+                                <span className="font-semibold">{selectedHospitalDetails.staff.doctors.orthopedics || 0}</span>
+                              </div>
+                              <div className="flex justify-between p-2 bg-secondary/30 rounded">
+                                <span className="text-muted-foreground">General:</span>
+                                <span className="font-semibold">{selectedHospitalDetails.staff.doctors.general || 0}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="text-sm font-medium mb-2">Nurses</div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          {selectedHospitalDetails.staff.nurses && (
+                            <>
+                              <div className="flex justify-between p-2 bg-secondary/30 rounded">
+                                <span className="text-muted-foreground">Total Nurses:</span>
+                                <span className="font-semibold">{selectedHospitalDetails.staff.nurses.total || 0}</span>
+                              </div>
+                              <div className="flex justify-between p-2 bg-secondary/30 rounded">
+                                <span className="text-muted-foreground">Emergency Nurses:</span>
+                                <span className="font-semibold">{selectedHospitalDetails.staff.nurses.emergency || 0}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Additional Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Additional Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Location:</span>
+                      <span className="font-medium">{selectedHospitalDetails.location || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Average Wait Time:</span>
+                      <span className="font-medium">{selectedHospitalDetails.wait || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Waiting Patients:</span>
+                      <span className="font-medium">{selectedHospitalDetails.waiting_patients || 0}</span>
+                    </div>
+                    {selectedHospitalDetails.surge && (
+                      <div className="flex items-center gap-2 mt-3 p-2 bg-triage-red/10 border border-triage-red/30 rounded">
+                        <TrendingUp className="w-4 h-4 text-triage-red" />
+                        <span className="text-sm font-medium text-triage-red">Surge Alert Active</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
