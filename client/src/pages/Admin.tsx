@@ -79,6 +79,8 @@ export default function AdminPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [triageDistribution, setTriageDistribution] = useState<any[]>([]);
   const [hourlyAdmissions, setHourlyAdmissions] = useState<any[]>([]);
+  const [showRecallAlert, setShowRecallAlert] = useState(false);
+  const [recallStaffCount, setRecallStaffCount] = useState(0);
 
   useEffect(() => {
     if (user?.hospitalId) {
@@ -419,17 +421,14 @@ export default function AdminPanel() {
                         variant="outline" 
                         className="w-full"
                         onClick={() => {
-                          toast.promise(
-                            new Promise(resolve => setTimeout(resolve, 2000)),
-                            {
-                              loading: '🚨 Sending emergency recall notifications...',
-                              success: () => {
-                                const staffCount = Math.floor(Math.random() * 15) + 10;
-                                return `✅ Emergency recall sent to ${staffCount} off-duty staff members via SMS, Email, and App notification!`;
-                              },
-                              error: 'Failed to send recall notifications'
-                            }
-                          );
+                          const staffCount = Math.floor(Math.random() * 15) + 10;
+                          setRecallStaffCount(staffCount);
+                          setShowRecallAlert(true);
+                          
+                          // Auto-close after 5 seconds
+                          setTimeout(() => {
+                            setShowRecallAlert(false);
+                          }, 5000);
                         }}
                       >
                         Initiate Recall
@@ -651,6 +650,85 @@ export default function AdminPanel() {
           </div>
         </Tabs>
       </div>
+
+      {/* Emergency Staff Recall Alert - Center Screen with Red Glow */}
+      {showRecallAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative">
+            {/* Red glow effect */}
+            <div className="absolute inset-0 bg-red-500/30 blur-3xl animate-pulse" />
+            
+            {/* Alert card */}
+            <div className="relative bg-background border-4 border-red-500 rounded-2xl p-8 max-w-lg shadow-2xl shadow-red-500/50 animate-in zoom-in-95 duration-300">
+              {/* Animated rings */}
+              <div className="absolute inset-0 -m-1">
+                <div className="absolute inset-0 border-2 border-red-500 rounded-2xl animate-ping opacity-75" />
+                <div className="absolute inset-0 border-2 border-red-400 rounded-2xl animate-pulse" />
+              </div>
+              
+              {/* Content */}
+              <div className="relative">
+                {/* Icon */}
+                <div className="flex justify-center mb-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-red-500 blur-xl animate-pulse" />
+                    <div className="relative w-24 h-24 bg-red-500 rounded-full flex items-center justify-center animate-bounce">
+                      <AlertTriangle className="w-12 h-12 text-white" strokeWidth={3} />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Title */}
+                <h2 className="text-3xl font-bold text-center mb-4 text-red-500 animate-pulse">
+                  🚨 EMERGENCY STAFF RECALL ACTIVATED 🚨
+                </h2>
+                
+                {/* Message */}
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 mb-6">
+                  <p className="text-center text-lg font-semibold mb-3">
+                    Emergency notifications sent to:
+                  </p>
+                  <p className="text-center text-5xl font-bold text-red-500 mb-3">
+                    {recallStaffCount}
+                  </p>
+                  <p className="text-center text-sm text-muted-foreground">
+                    off-duty staff members
+                  </p>
+                </div>
+                
+                {/* Details */}
+                <div className="space-y-2 mb-6">
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span>✅ SMS notifications sent</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span>✅ Email notifications sent</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span>✅ App push notifications sent</span>
+                  </div>
+                </div>
+                
+                {/* Close button */}
+                <Button
+                  onClick={() => setShowRecallAlert(false)}
+                  className="w-full bg-red-500 hover:bg-red-600 text-white font-bold text-lg h-12"
+                >
+                  ACKNOWLEDGE
+                </Button>
+                
+                {/* Auto-close indicator */}
+                <p className="text-center text-xs text-muted-foreground mt-4">
+                  Auto-closing in 5 seconds...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -665,6 +665,7 @@ export default function NurseView() {
             <div>
               <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">Presenting Symptoms</h3>
               <div className="flex flex-wrap gap-2">
+                {/* Predefined symptoms */}
                 {SYMPTOMS.map(s => (
                   <Badge
                     key={s}
@@ -679,6 +680,21 @@ export default function NurseView() {
                     {s}
                   </Badge>
                 ))}
+                
+                {/* NLP-detected symptoms that aren't in predefined list */}
+                {selectedSymptoms
+                  .filter(symptom => !SYMPTOMS.includes(symptom))
+                  .map(symptom => (
+                    <Badge
+                      key={symptom}
+                      variant="default"
+                      className="cursor-pointer px-4 py-2 text-sm transition-all bg-blue-600 text-white hover:bg-blue-700 border-2 border-blue-400 animate-in fade-in zoom-in duration-300"
+                      onClick={() => toggleSymptom(symptom)}
+                    >
+                      ✨ {symptom}
+                    </Badge>
+                  ))
+                }
               </div>
             </div>
 
