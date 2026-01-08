@@ -262,7 +262,7 @@ if (!forecast) {
       {/* Recommendations */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">🤖 AI Recommendations</CardTitle>
+          <CardTitle className="text-lg">AI Recommendations</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {forecast.recommendations.map((rec, idx) => {

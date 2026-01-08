@@ -11,7 +11,9 @@
 5. [Database Schema](#database-schema)
 6. [Data Flow & Workflows](#data-flow--workflows)
 7. [Key Components Deep Dive](#key-components-deep-dive)
-8. [Development Setup](#development-setup)
+8. [AI/ML Integration](#aiml-integration)
+9. [Development Setup](#development-setup)
+10. [Recent Updates & Features](#recent-updates--features)
 
 ---
 
@@ -1459,6 +1461,94 @@ cd ml-service && python app.py  # Start ML service
 
 ---
 
+## 🤖 AI/ML Integration
+
+### Overview
+The system integrates multiple AI/ML services for enhanced decision-making:
+
+1. **Deterioration Predictor** - XGBoost model predicting patient deterioration risk
+2. **NLP Symptom Extractor** - spaCy-based natural language processing for complaint extraction
+3. **Surge Forecaster** - Time-series analysis for predicting patient influx
+4. **SHAP Explainability** - Feature importance visualization for AI predictions
+
+### Deterioration Prediction Flow
+
+```
+Patient Vitals + Symptoms → Backend API
+  ↓
+POST /api/predict/deterioration → ML Service (Flask)
+  ↓
+XGBoost Model + Feature Engineering
+  ↓
+SHAP Analysis (Explainability)
+  ↓
+{
+  risk_score: 0-100,
+  deterioration_probability: 0-1,
+  predicted_escalation_time: timestamp,
+  ai_reasoning: [reasons],
+  shap_values: {feature: importance}
+}
+  ↓
+Displayed in Doctor/Nurse UI with explanations
+```
+
+### NLP Extraction Features
+
+**Dynamic Symptom Detection:**
+- Extracts symptoms beyond predefined list
+- Auto-renders UI buttons for detected symptoms
+- Assigns severity levels (mild/moderate/severe/critical)
+- Maps to medical specialties
+- Suggests additional tests
+
+**Recent Enhancement:**
+- Previously: Only detected predefined symptoms
+- Now: Flexible extraction from free-text complaints
+- Auto-renders new symptom buttons in UI
+- No manual selection required
+
+**Example:**
+```
+Input: "Patient has burning sensation in chest and nausea"
+Output:
+  - burning sensation (severity: moderate) → Auto-rendered button
+  - nausea (severity: mild) → Auto-rendered button
+  - Specialty: Gastroenterology
+  - Suggested tests: [ECG, Upper GI endoscopy]
+```
+
+### AI Reasoning & Explainability
+
+**Why Predictions Section:**
+All AI predictions now include:
+1. **Risk Score Breakdown** - Feature contributions via SHAP
+2. **Human-Readable Reasoning** - Plain English explanations
+3. **Confidence Levels** - Model certainty (0-1)
+4. **Escalation Timeline** - Predicted time to deterioration
+
+**Display for All Priority Levels:**
+- RED: High-risk reasoning with critical alerts
+- YELLOW: Moderate-risk with watch recommendations
+- GREEN: Low-risk with routine monitoring
+
+### Surge Forecasting
+
+**Algorithm:**
+1. Analyze historical patient arrival patterns (hourly)
+2. Calculate baseline: avg(arrivals) + 1.5 * std(arrivals)
+3. Forecast next 6 hours using time-series patterns
+4. Detect surge: predicted > baseline
+5. Generate staffing/bed recommendations
+
+**Recommendations Include:**
+- Staff recall requirements (specific time + count)
+- Extra bed preparation (quantity)
+- Inter-hospital coordination alerts
+- Priority levels (high/medium/low)
+
+---
+
 ## 🎓 Learning Resources
 
 ### Understanding Triage Systems
@@ -1473,6 +1563,97 @@ cd ml-service && python app.py  # Start ML service
 - **WebSocket:** Socket.IO rooms, events
 - **SQL:** Joins, indexes, transactions
 - **ML:** Supervised learning, feature engineering
+
+---
+
+---
+
+## 🆕 Recent Updates & Features
+
+### UI/UX Enhancements (Latest)
+
+1. **Landing Page Animations**
+   - Glowing card effects for all 4 role cards
+   - Smooth hover transitions
+   - Enhanced visual appeal
+
+2. **Staff Recall System**
+   - Prominent center-screen alert modal
+   - Red glowing animation effect
+   - Clear emergency messaging
+   - One-click acknowledgment
+
+3. **Hospital Registration (Government View)**
+   - New "Register Hospital" feature in government panel
+   - Navigation bar with tabs (Dashboard | Register Hospital)
+   - Comprehensive form including:
+     - Basic info (name, location, coordinates)
+     - Bed capacity (General, ICU, Ventilators)
+     - Specialties and doctor counts
+   - Real-time map updates with randomized positioning
+   - Prevents marker overlap
+
+4. **Patient History**
+   - Functional history button in doctor queue
+   - Shows complete patient timeline:
+     - All vital sign changes
+     - Triage priority escalations
+     - Treatment status updates
+     - AI prediction history
+   - Chronological display with timestamps
+
+5. **AI Predictions Display**
+   - Deterioration box shows for ALL priorities (RED/YELLOW/GREEN)
+   - "Why This Prediction" section with:
+     - SHAP value visualizations
+     - Feature importance bars
+     - Human-readable reasoning
+     - Confidence indicators
+
+6. **NLP Auto-Rendering**
+   - Dynamically detected symptoms auto-render as buttons
+   - No emoji clutter in UI
+   - Clean symptom chips with severity badges
+   - Automatic specialty assignment
+
+### Technical Improvements
+
+1. **ML Service Integration**
+   - 100% integration completion
+   - Graceful fallback to rule-based if ML unavailable
+   - SHAP explainability for all predictions
+   - Confidence scoring
+
+2. **Database Schema Updates**
+   - New `hospitals` table fields: lat/lng coordinates
+   - `specialty_counts` JSON field for doctor distribution
+   - `equipment_counts` for ventilators/beds
+
+3. **WebSocket Reliability**
+   - Hospital-specific room broadcasting
+   - Real-time queue updates
+   - Alert propagation to government dashboard
+
+4. **Security**
+   - JWT authentication on all ML endpoints
+   - Role-based access control (RBAC)
+   - Input validation on all forms
+
+### Deployment Status
+
+- **Platform:** Railway
+- **Frontend:** React + Vite (SPA)
+- **Backend:** Node.js + Express (API)
+- **ML Service:** Python Flask (Microservice)
+- **Database:** PostgreSQL (production), SQLite (dev)
+- **Live URL:** https://triage-production-9233.up.railway.app/
+
+**Deployment Safety:**
+✅ Environment variables configured  
+✅ Database migrations automated  
+✅ ML service health checks active  
+✅ CORS properly configured  
+✅ Works locally and on Railway
 
 ---
 
