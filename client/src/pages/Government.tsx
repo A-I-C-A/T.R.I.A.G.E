@@ -91,25 +91,15 @@ export default function GovernmentView() {
           : occupancy >= 75 ? 'BUSY' 
           : 'NORMAL';
         
-        // Dynamic positioning - distribute hospitals across the map without overlap
-        // Use a grid-based approach with some randomness for natural look
-        const totalHospitals = hospitalList.length;
-        const cols = Math.ceil(Math.sqrt(totalHospitals));
-        const rows = Math.ceil(totalHospitals / cols);
+        // Truly random positioning across the map
+        // Use hospital ID as seed for consistent positions across refreshes
+        const seed = h.id || index;
+        const random1 = (Math.sin(seed * 12.9898) * 43758.5453) % 1;
+        const random2 = (Math.cos(seed * 78.233) * 43758.5453) % 1;
         
-        const col = index % cols;
-        const row = Math.floor(index / cols);
-        
-        // Base position from grid (with margins: 15% to 85% of map area)
-        const baseX = 15 + (col * (70 / Math.max(cols - 1, 1)));
-        const baseY = 15 + (row * (70 / Math.max(rows - 1, 1)));
-        
-        // Add small random offset for natural distribution (±5%)
-        const randomOffsetX = (Math.random() - 0.5) * 8;
-        const randomOffsetY = (Math.random() - 0.5) * 8;
-        
-        const x = Math.min(85, Math.max(10, baseX + randomOffsetX));
-        const y = Math.min(85, Math.max(10, baseY + randomOffsetY));
+        // Random position with margins (15% to 85% of map area)
+        const x = 15 + (Math.abs(random1) * 70);
+        const y = 15 + (Math.abs(random2) * 70);
         
         return {
           ...h,
