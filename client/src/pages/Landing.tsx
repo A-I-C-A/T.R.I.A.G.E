@@ -208,25 +208,28 @@ export default function Landing() {
                 transition={{ delay: index * 0.15, duration: 0.8 }}
                 whileHover={{ y: -10, scale: 1.02 }}
                 onClick={() => navigate(role.path)}
-                className="group cursor-pointer p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 transition-all duration-300"
+                className="group cursor-pointer p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 transition-all duration-300 relative overflow-hidden"
               >
+                {/* Animated glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-purple-500/20 to-blue-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-60 transition-all duration-500 animate-pulse" />
                 {/* Icon Container */}
-                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4">
+                <div className="relative w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4">
                   <role.icon className="w-6 h-6 text-foreground" strokeWidth={1.5} />
                 </div>
 
                 {/* Title */}
-                <h3 className="text-base font-medium tracking-[-0.01em] mb-2 text-foreground" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <h3 className="relative text-base font-medium tracking-[-0.01em] mb-2 text-foreground" style={{ fontFamily: 'Inter, sans-serif' }}>
                   {role.title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-sm font-light leading-relaxed text-muted-foreground" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <p className="relative text-sm font-light leading-relaxed text-muted-foreground" style={{ fontFamily: 'Inter, sans-serif' }}>
                   {role.subtitle}
                 </p>
 
                 {/* Arrow */}
-                <div className="mt-4 flex items-center text-xs font-medium text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="relative mt-4 flex items-center text-xs font-medium text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                   <span>Access Portal</span>
                   <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>

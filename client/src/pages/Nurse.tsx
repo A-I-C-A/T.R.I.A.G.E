@@ -691,7 +691,7 @@ export default function NurseView() {
                       className="cursor-pointer px-4 py-2 text-sm transition-all bg-blue-600 text-white hover:bg-blue-700 border-2 border-blue-400 animate-in fade-in zoom-in duration-300"
                       onClick={() => toggleSymptom(symptom)}
                     >
-                      ✨ {symptom}
+                      {symptom}
                     </Badge>
                   ))
                 }

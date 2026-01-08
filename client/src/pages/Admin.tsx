@@ -81,6 +81,7 @@ export default function AdminPanel() {
   const [hourlyAdmissions, setHourlyAdmissions] = useState<any[]>([]);
   const [showRecallAlert, setShowRecallAlert] = useState(false);
   const [recallStaffCount, setRecallStaffCount] = useState(0);
+  const [patientHistory, setPatientHistory] = useState<any[]>([]);
 
   useEffect(() => {
     if (user?.hospitalId) {
@@ -100,6 +101,26 @@ export default function AdminPanel() {
       };
     }
   }, [user?.hospitalId]);
+
+  // Load patient history when switching to history tab
+  useEffect(() => {
+    if (activeTab === 'history' && user?.hospitalId) {
+      loadPatientHistory();
+    }
+  }, [activeTab, user?.hospitalId]);
+
+  const loadPatientHistory = async () => {
+    try {
+      const res = await patientAPI.getPatients({ 
+        hospitalId: user?.hospitalId,
+        status: 'discharged,transferred'
+      });
+      setPatientHistory(res.data.patients || []);
+    } catch (error) {
+      console.error('Failed to load patient history:', error);
+      toast.error('Failed to load patient history');
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -296,6 +317,7 @@ export default function AdminPanel() {
               <TabsTrigger value="management" className="gap-2"><Building className="w-4 h-4" /> Management</TabsTrigger>
               <TabsTrigger value="reports" className="gap-2"><FileBarChart className="w-4 h-4" /> Reports</TabsTrigger>
               <TabsTrigger value="alerts" className="gap-2"><Bell className="w-4 h-4" /> Alerts</TabsTrigger>
+              <TabsTrigger value="history" className="gap-2"><Activity className="w-4 h-4" /> History</TabsTrigger>
             </TabsList>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-triage-green animate-pulse" />
@@ -647,6 +669,63 @@ export default function AdminPanel() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="history" className="mt-0">
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle>Patient History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {patientHistory.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No patient history available
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-border/50">
+                            <th className="text-left py-3 px-4 font-semibold text-sm">Patient ID</th>
+                            <th className="text-left py-3 px-4 font-semibold text-sm">Name</th>
+                            <th className="text-left py-3 px-4 font-semibold text-sm">Priority</th>
+                            <th className="text-left py-3 px-4 font-semibold text-sm">Specialty</th>
+                            <th className="text-left py-3 px-4 font-semibold text-sm">Arrival</th>
+                            <th className="text-left py-3 px-4 font-semibold text-sm">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {patientHistory.map((patient) => (
+                            <tr key={patient.patient_id} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+                              <td className="py-3 px-4 font-mono text-sm">{patient.patient_id}</td>
+                              <td className="py-3 px-4">{patient.name}</td>
+                              <td className="py-3 px-4">
+                                <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                  patient.priority === 'RED' ? 'bg-triage-red/20 text-triage-red' :
+                                  patient.priority === 'YELLOW' ? 'bg-triage-yellow/20 text-triage-yellow' :
+                                  patient.priority === 'GREEN' ? 'bg-triage-green/20 text-triage-green' :
+                                  'bg-blue-500/20 text-blue-500'
+                                }`}>
+                                  {patient.priority}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 capitalize">{patient.specialty || 'General'}</td>
+                              <td className="py-3 px-4 text-sm text-muted-foreground">
+                                {patient.arrival_time ? format(new Date(patient.arrival_time), 'PPp') : 'N/A'}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className="px-2 py-1 rounded text-xs bg-muted text-muted-foreground capitalize">
+                                  {patient.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
           </div>
         </Tabs>
       </div>
@@ -680,7 +759,7 @@ export default function AdminPanel() {
                 
                 {/* Title */}
                 <h2 className="text-3xl font-bold text-center mb-4 text-red-500 animate-pulse">
-                  🚨 EMERGENCY STAFF RECALL ACTIVATED 🚨
+                  EMERGENCY STAFF RECALL ACTIVATED
                 </h2>
                 
                 {/* Message */}
