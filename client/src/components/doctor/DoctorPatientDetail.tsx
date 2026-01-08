@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { SpecialtyIcon } from "./SpecialtyIcon";
 import { format } from "date-fns";
 import { AIEnhancedTriage } from "./AIEnhancedTriage";
+import { PatientHistoryModal } from "./PatientHistoryModal";
 
 interface DoctorPatientDetailProps {
   patient: any;
@@ -33,6 +34,7 @@ import { patientAPI } from "@/services/api";
 
 export function DoctorPatientDetail({ patient, currentDoctor, onClaim }: DoctorPatientDetailProps) {
   const [showVitalsModal, setShowVitalsModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [vitalsForm, setVitalsForm] = useState({
     hr: patient.vitals?.hr || "",
     rr: patient.vitals?.rr || "",
@@ -80,6 +82,12 @@ export function DoctorPatientDetail({ patient, currentDoctor, onClaim }: DoctorP
 
   return (
     <div className="w-[30%] border-l border-border/50 bg-card/30 backdrop-blur-md p-6 flex flex-col gap-6 overflow-y-auto">
+      {showHistoryModal && (
+        <PatientHistoryModal 
+          patientId={patient.id} 
+          onClose={() => setShowHistoryModal(false)} 
+        />
+      )}
       {showVitalsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white dark:bg-background rounded-xl p-8 w-full max-w-md border border-border">
@@ -223,7 +231,7 @@ export function DoctorPatientDetail({ patient, currentDoctor, onClaim }: DoctorP
           <Button variant="outline" className="h-10" onClick={() => setShowVitalsModal(true)}>
             <Activity className="mr-2 w-4 h-4" /> Update Vitals
           </Button>
-          <Button variant="outline" className="h-10">
+          <Button variant="outline" className="h-10" onClick={() => setShowHistoryModal(true)}>
             <History className="mr-2 w-4 h-4" /> History
           </Button>
         </div>

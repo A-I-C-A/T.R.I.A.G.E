@@ -4,6 +4,8 @@ import { PatientController } from '../controllers/patientController';
 import { authenticate, authorize } from '../middleware/auth';
 import { validate } from '../middleware/validator';
 import db from '../config/database';
+import { PatientService } from '../services/patientService';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -85,6 +87,47 @@ router.post(
   authenticate,
   authorize('admin', 'staff'),
   PatientController.checkEscalations
+);
+
+router.get(
+  '/:patientId/history',
+  authenticate,
+  [
+    param('patientId').isNumeric(),
+    validate
+  ],
+  async (req, res) => {
+    try {
+      const { patientId } = req.params;
+      const history = await PatientService.getPatientHistory(Number(patientId));
+      res.json(history);
+    } catch (error: any) {
+      logger.error('Get patient history error:', error);
+      res.status(500).json({ error: error.message || 'Failed to get patient history' });
+    }
+  }
+);
+
+router.put(
+  '/:patientId/doctor-notes',
+  authenticate,
+  authorize('doctor', 'admin'),
+  [
+    param('patientId').isNumeric(),
+    body('notes').isString(),
+    validate
+  ],
+  async (req, res) => {
+    try {
+      const { patientId } = req.params;
+      const { notes } = req.body;
+      const patient = await PatientService.updateDoctorNotes(Number(patientId), notes);
+      res.json({ patient });
+    } catch (error: any) {
+      logger.error('Update doctor notes error:', error);
+      res.status(500).json({ error: 'Failed to update doctor notes' });
+    }
+  }
 );
 
 export default router;

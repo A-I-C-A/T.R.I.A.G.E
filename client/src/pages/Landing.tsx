@@ -17,6 +17,8 @@ export default function Landing() {
       subtitle: "Real-time patient triage and vital monitoring for emergency response teams",
       icon: Activity,
       path: "/auth/nurse",
+      color: "from-green-500/20 to-emerald-500/20",
+      glowColor: "shadow-[0_0_30px_rgba(34,197,94,0.4)]"
     },
     {
       id: "doctor",
@@ -24,6 +26,8 @@ export default function Landing() {
       subtitle: "Intelligent patient queue management with specialty-based filtering",
       icon: Stethoscope,
       path: "/auth/doctor",
+      color: "from-blue-500/20 to-cyan-500/20",
+      glowColor: "shadow-[0_0_30px_rgba(59,130,246,0.4)]"
     },
     {
       id: "admin",
@@ -31,6 +35,8 @@ export default function Landing() {
       subtitle: "Comprehensive analytics and resource allocation oversight",
       icon: ShieldAlert,
       path: "/auth/admin",
+      color: "from-red-500/20 to-rose-500/20",
+      glowColor: "shadow-[0_0_30px_rgba(239,68,68,0.4)]"
     },
     {
       id: "government",
@@ -38,6 +44,8 @@ export default function Landing() {
       subtitle: "City-wide hospital network monitoring and emergency coordination",
       icon: Building2,
       path: "/auth/government",
+      color: "from-purple-500/20 to-violet-500/20",
+      glowColor: "shadow-[0_0_30px_rgba(168,85,247,0.4)]"
     },
   ];
 
@@ -208,11 +216,11 @@ export default function Landing() {
                 transition={{ delay: index * 0.15, duration: 0.8 }}
                 whileHover={{ y: -10, scale: 1.02 }}
                 onClick={() => navigate(role.path)}
-                className="group cursor-pointer p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 transition-all duration-300 relative overflow-hidden"
+                className={`group cursor-pointer p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 transition-all duration-300 relative overflow-hidden ${role.glowColor}`}
               >
-                {/* Animated glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-purple-500/20 to-blue-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-60 transition-all duration-500 animate-pulse" />
+                {/* Animated glow effect with role-specific colors */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-60 group-hover:opacity-100 transition-opacity duration-500`} />
+                <div className={`absolute -inset-1 bg-gradient-to-r ${role.color} rounded-2xl blur-xl opacity-40 group-hover:opacity-80 transition-all duration-500`} />
                 {/* Icon Container */}
                 <div className="relative w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4">
                   <role.icon className="w-6 h-6 text-foreground" strokeWidth={1.5} />

@@ -12,6 +12,7 @@ export interface PatientInput {
   contact?: string;
   triageInput: TriageInput;
   preferredSpecialty?: string; // Nurse's selected specialty
+  clinicalNotes?: string; // Nurse's clinical notes
 }
 
 export class PatientService {
@@ -38,6 +39,7 @@ export class PatientService {
           contact: input.contact,
           priority: triageResult.priority,
           recommended_specialty: finalSpecialty,
+          clinical_notes: input.clinicalNotes || null,
           status: 'waiting',
           arrival_time: new Date(),
           triage_time: new Date()
@@ -303,5 +305,56 @@ export class PatientService {
     }
 
     return escalations;
+  }
+
+  static async getPatientHistory(patientId: number) {
+    const patient = await db('patients').where({ id: patientId }).first();
+    
+    if (!patient) {
+      throw new Error('Patient not found');
+    }
+
+    const triageHistory = await db('triage_history')
+      .where({ patient_id: patientId })
+      .leftJoin('users', 'triage_history.triggered_by_user', 'users.id')
+      .select(
+        'triage_history.*',
+        'users.name as triggered_by_name'
+      )
+      .orderBy('changed_at', 'desc');
+
+    const vitalHistory = await db('vital_signs')
+      .where({ patient_id: patientId })
+      .orderBy('recorded_at', 'desc');
+
+    const symptoms = await db('symptoms')
+      .where({ patient_id: patientId })
+      .select('*');
+
+    const riskFactors = await db('risk_factors')
+      .where({ patient_id: patientId })
+      .select('*');
+
+    const alerts = await db('alerts')
+      .where({ patient_id: patientId })
+      .orderBy('created_at', 'desc');
+
+    return {
+      patient,
+      triageHistory,
+      vitalHistory,
+      symptoms,
+      riskFactors,
+      alerts
+    };
+  }
+
+  static async updateDoctorNotes(patientId: number, doctorNotes: string) {
+    const [patient] = await db('patients')
+      .where({ id: patientId })
+      .update({ doctor_notes: doctorNotes, updated_at: new Date() })
+      .returning('*');
+
+    return patient;
   }
 }

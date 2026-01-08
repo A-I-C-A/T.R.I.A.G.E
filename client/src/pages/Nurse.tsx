@@ -328,6 +328,7 @@ export default function NurseView() {
         gender: patientGender.toLowerCase(), // backend expects lowercase
         contact: "",
         preferredSpecialty: selectedSpecialty, // Send nurse's selected specialty
+        clinicalNotes: clinicalNotes || undefined, // Send clinical notes
         triageInput: {
           vitalSigns: {
             heartRate: vitals.hr ? Number(vitals.hr) : undefined,
