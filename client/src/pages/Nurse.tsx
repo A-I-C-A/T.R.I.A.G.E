@@ -407,7 +407,7 @@ export default function NurseView() {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 px-4 py-2 bg-secondary/50 rounded-full border border-border/50">
             <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-mono font-medium">QUEUE: {queueCount}</span>
+            <span className="text-sm font-mono font-medium">QUEUE: {queueCount} patients</span>
             <span className="w-2 h-2 rounded-full bg-triage-green animate-pulse ml-2" />
           </div>
           <ThemeToggle />

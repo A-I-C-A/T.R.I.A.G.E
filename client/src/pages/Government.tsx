@@ -859,7 +859,22 @@ export default function GovernmentView() {
                   <TableBody>
                     {hospitals.map((hospital) => (
                       <TableRow key={hospital.id}>
-                        <TableCell className="font-medium">{hospital.name}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {hospital.name}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => {
+                                setSelectedHospitalDetails(hospital);
+                                setIsHospitalDetailsOpen(true);
+                              }}
+                            >
+                              <Info className="h-4 w-4 text-blue-500" />
+                            </Button>
+                          </div>
+                        </TableCell>
                         <TableCell className="text-muted-foreground">{hospital.location}</TableCell>
                         <TableCell className="text-center">{hospital.total_beds}</TableCell>
                         <TableCell className="text-center">
@@ -922,13 +937,16 @@ export default function GovernmentView() {
 
       {/* Hospital Details Dialog */}
       <Dialog open={isHospitalDetailsOpen} onOpenChange={setIsHospitalDetailsOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="hospital-details-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="w-5 h-5" />
               {selectedHospitalDetails?.name || 'Hospital Details'}
             </DialogTitle>
           </DialogHeader>
+          <div id="hospital-details-description" className="sr-only">
+            Detailed statistics and information for {selectedHospitalDetails?.name}
+          </div>
           
           {selectedHospitalDetails && (
             <div className="space-y-6">

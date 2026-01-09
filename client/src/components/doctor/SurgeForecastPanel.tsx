@@ -74,6 +74,8 @@ export const SurgeForecastPanel: React.FC<SurgeForecastPanelProps> = ({ hospital
       }
     } catch (error) {
       console.error('Failed to fetch surge forecast:', error);
+      // Set to null to trigger mock data display
+      setForecast(null);
     } finally {
       setLoading(false);
     }
