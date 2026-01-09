@@ -45,8 +45,17 @@ export const SurgeForecastPanel: React.FC<SurgeForecastPanelProps> = ({ hospital
 
   const fetchForecast = async () => {
     try {
-      // Fetch historical data from backend
+      // Try to fetch historical data from backend
       const historicalResponse = await fetch(`/api/hospitals/${hospitalId}/patient-history`);
+      
+      // If historical data fails (401/403), use mock data
+      if (!historicalResponse.ok) {
+        console.warn('Historical data not available, using mock forecast');
+        setForecast(null);
+        setLoading(false);
+        return;
+      }
+      
       const historicalData = await historicalResponse.json();
 
       // Get forecast from ML service
@@ -60,6 +69,13 @@ export const SurgeForecastPanel: React.FC<SurgeForecastPanelProps> = ({ hospital
         })
       });
 
+      if (!response.ok) {
+        console.warn('Surge forecast API not available, using mock forecast');
+        setForecast(null);
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
       if (data.success) {
         setForecast({
@@ -71,6 +87,8 @@ export const SurgeForecastPanel: React.FC<SurgeForecastPanelProps> = ({ hospital
           recommendations: data.forecast.recommendations,
           confidence: data.forecast.confidence
         });
+      } else {
+        setForecast(null);
       }
     } catch (error) {
       console.error('Failed to fetch surge forecast:', error);

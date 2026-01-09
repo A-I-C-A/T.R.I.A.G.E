@@ -72,10 +72,15 @@ export default function NurseView() {
   useEffect(() => {
     const fetchQueue = async () => {
       try {
-        const response = await patientAPI.getPatients({ status: 'waiting' });
-        setQueueCount(response.data.length);
+        const response = await patientAPI.getPatients();
+        // Count patients that are waiting (not assigned to a doctor and not discharged)
+        const waitingPatients = response.data.filter((p: any) => 
+          p.status !== 'discharged' && !p.assigned_doctor_id
+        );
+        setQueueCount(waitingPatients.length);
       } catch (error) {
         console.error("Failed to fetch queue:", error);
+        setQueueCount(0);
       }
     };
     
