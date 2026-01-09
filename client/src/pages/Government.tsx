@@ -26,6 +26,7 @@ import { hospitalAPI, analyticsAPI } from "@/services/api";
 import { wsService } from "@/services/websocket";
 import { toast } from "sonner";
 import { SurgeForecastPanel } from "@/components/doctor/SurgeForecastPanel";
+import { RealMapView } from "@/components/RealMapView";
 
 export default function GovernmentView() {
   const navigate = useNavigate();
@@ -343,137 +344,12 @@ export default function GovernmentView() {
 
         {/* Top Section: Map & Stats */}
         <div className="grid grid-cols-3 gap-6 h-[400px]">
-          {/* Interactive Map */}
-          <Card className="col-span-2 glass-card overflow-hidden relative group">
-            <div className="absolute inset-0 bg-secondary/30">
-              {/* Grid overlay */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="grid grid-cols-10 grid-rows-10 h-full w-full">
-                  {Array.from({ length: 100 }).map((_, i) => (
-                    <div key={i} className="border border-foreground/20" />
-                  ))}
-                </div>
-              </div>
-
-              {/* Hospital markers */}
-              {hospitals.length === 0 ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <p className="text-muted-foreground">No hospitals available</p>
-                </div>
-              ) : (
-                hospitals.map((hospital, index) => (
-                <motion.div
-                  key={hospital.id || hospital.name || index}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.1 + index * 0.05 }}
-                  className="absolute cursor-pointer z-10"
-                  style={{ left: `${hospital.x || 50}%`, top: `${hospital.y || 50}%` }}
-                  onMouseEnter={() => setHoveredHospital(hospital.name)}
-                  onMouseLeave={() => setHoveredHospital(null)}
-                >
-                  {/* Pulsing ring - only for critical/busy */}
-                  {hospital.status && (hospital.status === "CRITICAL" || hospital.status === "BUSY") && (
-                    <motion.div
-                      animate={{
-                        scale: [1, 1.8, 1],
-                        opacity: [0.6, 0, 0.6],
-                      }}
-                      transition={{
-                        duration: hospital.status === "CRITICAL" ? 1.5 : 2.5,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                      className={`absolute -inset-4 rounded-full border-2 ${
-                        hospital.status === "CRITICAL" 
-                          ? "bg-triage-red/40 border-triage-red" 
-                          : "bg-triage-yellow/40 border-triage-yellow"
-                      }`}
-                    />
-                  )}
-                  
-                  {/* Pulsing ring for NORMAL status - gentle green pulse */}
-                  {hospital.status === "NORMAL" && (
-                    <motion.div
-                      animate={{
-                        scale: [1, 1.5, 1],
-                        opacity: [0.4, 0, 0.4],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                      className="absolute -inset-4 rounded-full bg-triage-green/30 border-2 border-triage-green"
-                    />
-                  )}
-                  
-                  {/* Marker */}
-                  <div className={`relative w-4 h-4 rounded-full shadow-lg border-2 border-background hover:scale-150 transition-transform ${
-                    hospital.status === "CRITICAL" ? "bg-triage-red shadow-triage-red/50" :
-                    hospital.status === "BUSY" ? "bg-triage-yellow shadow-triage-yellow/50" :
-                    "bg-triage-green shadow-triage-green/50"
-                  }`}>
-                    {hospital.surge && (
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        className="absolute -inset-1"
-                      >
-                        <AlertOctagon className="w-6 h-6 text-triage-red" />
-                      </motion.div>
-                    )}
-                  </div>
-
-                  {/* Tooltip */}
-                  {hoveredHospital === hospital.name && hospital.name && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap glass-card px-3 py-2 rounded-lg border ${getStatusBorderColor(hospital.status || 'NORMAL')} shadow-xl z-20`}
-                    >
-                      <div className="text-sm font-bold">{hospital.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {hospital.occupancy || 0}% occupancy • {hospital.wait || '-'} wait
-                      </div>
-                      <div className={`text-xs font-bold mt-1 ${
-                        hospital.status === "CRITICAL" ? "text-triage-red" :
-                        hospital.status === "BUSY" ? "text-triage-yellow" :
-                        "text-triage-green"
-                      }`}>
-                        {hospital.status || 'NORMAL'}
-                      </div>
-                    </motion.div>
-                  )}
-                </motion.div>
-              ))
-              )}
-
-              {/* Map Title Overlay */}
-              <div className="absolute top-4 left-4 flex items-center gap-2 glass-card px-3 py-2 rounded-lg border border-border/50">
-                <Map className="w-4 h-4 text-primary" />
-                <span className="text-xs font-mono font-bold text-muted-foreground">LIVE CITY MAP</span>
-              </div>
-
-              {/* Legend */}
-              <div className="absolute bottom-4 right-4 glass-card px-4 py-3 rounded-lg border border-border/50">
-                <div className="text-xs font-mono font-bold mb-2 text-muted-foreground">STATUS</div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-triage-red" />
-                    <span className="text-xs">Critical</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-triage-yellow" />
-                    <span className="text-xs">Busy</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-triage-green" />
-                    <span className="text-xs">Normal</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Interactive Real Map */}
+          <Card className="col-span-2 glass-card overflow-hidden relative">
+            <RealMapView 
+              hospitals={hospitals} 
+              onHospitalClick={handleShowHospitalDetails}
+            />
           </Card>
 
           {/* City Stats */}

@@ -65,40 +65,7 @@ export default function NurseView() {
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [clinicalNotes, setClinicalNotes] = useState("");
   const [triageResult, setTriageResult] = useState<any>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [queueCount, setQueueCount] = useState(0);
-
-  // Fetch queue count
-  useEffect(() => {
-    const fetchQueue = async () => {
-      try {
-        const response = await patientAPI.getPatients();
-        // Count patients that are waiting (not assigned to a doctor and not discharged)
-        const waitingPatients = response.data.filter((p: any) => 
-          p.status !== 'discharged' && !p.assigned_doctor_id
-        );
-        setQueueCount(waitingPatients.length);
-      } catch (error) {
-        console.error("Failed to fetch queue:", error);
-        setQueueCount(0);
-      }
-    };
-    
-    fetchQueue();
-    
-    // Listen for WebSocket events to update queue
-    const handlePatientUpdate = () => {
-      fetchQueue();
-    };
-    
-    wsService.on('patient-created', handlePatientUpdate);
-    wsService.on('patient-status-updated', handlePatientUpdate);
-    
-    return () => {
-      wsService.off('patient-created', handlePatientUpdate);
-      wsService.off('patient-status-updated', handlePatientUpdate);
-    };
-  }, []); // Run once on mount and listen to WebSocket events
+  const [isSubmitting, setIsSubmitting] = useState(false); // Run once on mount and listen to WebSocket events
 
   const handleVitalChange = (key: string, value: string) => {
     setVitals(prev => ({ ...prev, [key]: value }));
@@ -410,11 +377,6 @@ export default function NurseView() {
         </div>
         
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 px-4 py-2 bg-secondary/50 rounded-full border border-border/50">
-            <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-mono font-medium">QUEUE: {queueCount} patients</span>
-            <span className="w-2 h-2 rounded-full bg-triage-green animate-pulse ml-2" />
-          </div>
           <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
             <LogOut className="w-5 h-5" />
@@ -495,8 +457,13 @@ export default function NurseView() {
               value={chiefComplaint}
               onChange={setChiefComplaint}
               onSymptomsExtracted={(symptoms) => {
-                // Auto-add extracted symptoms
-                const newSymptoms = symptoms.map(s => s.symptom);
+                // Match extracted symptoms with existing buttons (case-insensitive)
+                const newSymptoms = symptoms.map(s => {
+                  const matchingSymptom = SYMPTOMS.find(
+                    existing => existing.toLowerCase() === s.symptom.toLowerCase()
+                  );
+                  return matchingSymptom || s.symptom;
+                });
                 setSelectedSymptoms(prev => [...new Set([...prev, ...newSymptoms])]);
               }}
               onSpecialtyDetected={(specialty) => {

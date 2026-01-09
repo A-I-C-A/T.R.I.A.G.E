@@ -1,9 +1,8 @@
-# T.R.I.A.G.E
+# TRIAGELOCK
 
-**Real-time Triage, AI-Assisted Patient Safety & Surge Intelligence**
+**AI-Powered Emergency Triage and Hospital Load Management System**
 
-
-> A full-stack, production-minded platform for emergency triage, hospital load management, and mass-casualty surge response.
+A comprehensive platform for emergency department triage, patient deterioration prediction, and multi-hospital surge management. Built to support clinical decision-making in routine operations and mass-casualty scenarios.
 
 **[Live Demo](https://triage-production-9233.up.railway.app/)**
 
@@ -11,186 +10,326 @@
 
 ## Overview
 
-TRIAGELOCK combines deterministic clinical triage rules with explainable AI models and city-level operational dashboards to help clinicians and public health authorities make faster, safer decisions during routine operations and crisis scenarios. The system is built to be realistic, demo-ready, and extensible beyond a hackathon environment.
+TRIAGELOCK is an intelligent emergency triage system that combines rule-based clinical protocols with machine learning models to optimize patient care and resource allocation. The platform provides real-time patient monitoring, AI-assisted risk assessment, and predictive analytics for hospital administrators and government health authorities.
 
 ---
 
-## Key Features
+## Core Features
 
-### Real-Time Clinical Workflow
-- **Live triage queue** with priority-based sorting (RED, YELLOW, GREEN)
-- **Patient claiming, handoff, and treatment initiation**
-- Structured vitals capture with historical tracking
-- Role-based access control (doctor, nurse, admin, staff, government)
-- WebSocket-based real-time synchronization
+### Clinical Triage System
+- **Automated triage scoring** based on vital signs and presenting symptoms
+- **Multi-level priority classification** (RED/YELLOW/GREEN) following established protocols
+- **Real-time patient queue management** with dynamic priority updates
+- **Patient assignment and handoff** workflows for clinical staff
+- **Comprehensive vital signs tracking** with historical data visualization
+- **WebSocket-based live updates** across all connected clients
 
-### AI-Enhanced Triage (Explainable)
-- **Per-patient deterioration prediction:**
-  - Risk score
-  - Deterioration probability
-  - Predicted escalation window
-  - Confidence level
-- Feature-importance and structured reasoning outputs
-- Automatic re-scoring on vitals or symptom updates
-- Graceful fallback to deterministic triage rules if ML services are unavailable
+### AI-Powered Deterioration Detection
+- **Patient deterioration risk prediction** with probability scores
+- **Explainable AI outputs** showing contributing factors and feature importance
+- **Predicted escalation timeframes** for proactive intervention
+- **Confidence metrics** for clinical decision support
+- **Automatic re-assessment** on vital sign changes
+- **Graceful degradation** to rule-based triage when ML services are unavailable
 
-### Mass-Casualty Surge Forecaster
-- Hourly patient arrival forecasts for the next 6 hours
-- Lower and upper confidence bounds
-- Surge detection using adaptive thresholds
-- Peak hour identification
-- Actionable recommendations for staffing, beds, and transfers
-- Government dashboard visualization with alerts
+### Surge Forecasting and Capacity Planning
+- **6-hour patient arrival forecasting** with confidence intervals
+- **Automated surge detection** using adaptive thresholds
+- **Peak hour identification** for resource allocation
+- **Actionable recommendations** for staffing and bed management
+- **Cross-hospital load balancing** suggestions
+- **Transfer coordination** support during capacity constraints
 
-### Government / City-Level Dashboard
-- Cross-hospital situational awareness
-- Occupancy and load monitoring
-- Exportable reports and CSVs
-- Automated operational playbooks for surge scenarios
+### Multi-Hospital Government Dashboard
+- **City-wide situational awareness** across all connected facilities
+- **Real-time occupancy and capacity monitoring**
+- **Emergency department status tracking**
+- **Aggregate analytics and trend visualization**
+- **Export functionality** for reporting and analysis
+- **Alert system** for surge events and capacity breaches
 
-### Persistence and Demo Readiness
-- Seeded SQLite database (`triagelock.sqlite3`) committed to the repository
-- Reproducible demos without manual data setup
-- PostgreSQL supported for production via `DATABASE_URL`
-
-### Observability and Safety
-- Health checks for AI and ML services
-- Background jobs for escalations and surge monitoring
-- Audit-ready triage and AI prediction history
+### Role-Based Access Control
+- **Doctor interface**: Full patient management and clinical decision tools
+- **Nurse interface**: Patient registration, vitals entry, and basic care workflows
+- **Admin interface**: User management and system configuration
+- **Government interface**: Multi-hospital analytics and public health monitoring
 
 ---
 
-## Live Demo
+## Technical Architecture
 
-The application is hosted and publicly accessible:
+### Technology Stack
 
-**https://triage-production-9233.up.railway.app/**
+| Component | Technology |
+|-----------|------------|
+| **Frontend** | React 18, TypeScript, Tailwind CSS, Vite |
+| **Backend API** | Node.js, Express.js, TypeScript |
+| **Real-time Communication** | Socket.IO (WebSockets) |
+| **Database** | SQLite (development), PostgreSQL (production), Knex.js ORM |
+| **ML Service** | Python 3.11, Flask, NumPy, Pandas, scikit-learn |
+| **Authentication** | JWT, bcrypt |
+| **Deployment** | Railway (backend + ML), Vercel-ready (frontend) |
 
-Explore:
-- Clinician triage workflows
-- Real-time queue updates
-- Government surge forecasting dashboard
-- AI-assisted risk scoring (with fallback if ML service is inactive)
+### System Architecture
 
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | React, TypeScript, Vite |
-| **Backend** | Node.js, Express, Knex, WebSockets |
-| **AI / ML** | Python, Flask, Explainable ML models |
-| **Database** | SQLite (demo), PostgreSQL (production) |
-
----
-
-## Architecture
 ```
-Client (React) ↔ Backend API (Express + WebSockets) ↔ ML Service (Flask)
+┌─────────────────┐
+│  React Client   │
+│   (TypeScript)  │
+└────────┬────────┘
+         │ HTTP/WebSocket
+         ▼
+┌─────────────────┐      ┌──────────────────┐
+│  Express API    │◄────►│   ML Service     │
+│  (Node.js/TS)   │ HTTP │   (Flask/Python) │
+└────────┬────────┘      └──────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│    Database     │
+│ SQLite/Postgres │
+└─────────────────┘
 ```
 
-- The client communicates only with the backend API
-- The backend proxies all AI requests to the ML service
-- WebSockets handle real-time state updates
-- Background schedulers manage escalations and forecasts
+- Frontend communicates exclusively with the Express backend
+- Backend proxies ML requests to the Python Flask service
+- WebSocket connections provide real-time state synchronization
+- Background schedulers handle escalations and automated forecasting
 
 ---
 
-## API Overview
+## API Endpoints
 
-### Backend API (Express)
+### Patient Management
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/patients` | Register patient and run triage |
-| `GET` | `/api/patients/queue` | Fetch live triage queue |
-| `POST` | `/api/patients/:id/assign` | Claim patient |
-| `PUT` | `/api/patients/:id/vitals` | Update vitals and re-score |
-| `POST` | `/api/forecast/surge` | Surge forecast (proxied to ML) |
+| `POST` | `/api/patients` | Register new patient and calculate initial triage score |
+| `GET` | `/api/patients/queue` | Retrieve current triage queue with priority sorting |
+| `GET` | `/api/patients/:id` | Get detailed patient information |
+| `POST` | `/api/patients/:id/assign` | Assign patient to clinician |
+| `PUT` | `/api/patients/:id/vitals` | Update vital signs and trigger re-assessment |
+| `POST` | `/api/patients/:id/discharge` | Discharge or transfer patient |
 
-### ML Service (Flask)
+### Hospital Management
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/health` | Service health check |
-| `POST` | `/api/predict/deterioration` | Explainable patient risk prediction |
-| `POST` | `/api/forecast/surge` | 6-hour surge forecast |
-| `POST` | `/api/nlp/extract` | Symptom extraction from text |
+| `GET` | `/api/hospitals` | List all hospitals in the system |
+| `GET` | `/api/hospitals/:id` | Get hospital details and current status |
+| `PUT` | `/api/hospitals/:id/status` | Update hospital capacity and status |
+
+### Analytics and Forecasting
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/analytics/overview` | System-wide metrics and KPIs |
+| `POST` | `/api/forecast/surge` | Generate surge forecast (proxied to ML service) |
+
+### Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/login` | Authenticate user and issue JWT token |
+| `POST` | `/api/auth/register` | Register new staff member (admin only) |
+
+### ML Service Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Service health check with model status |
+| `POST` | `/api/predict/deterioration` | Patient deterioration risk prediction |
+| `POST` | `/api/forecast/surge` | 6-hour patient arrival forecast |
+| `POST` | `/api/nlp/extract` | Extract structured symptoms from clinical notes |
 
 ---
 
-## Local Development
+## Getting Started
 
-### Backend
+### Prerequisites
+
+- Node.js 18.x or higher
+- Python 3.9 or higher
+- npm or yarn package manager
+- Git
+
+### Installation
+
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/triage.git
+cd triage
+```
+
+2. Install backend dependencies
 ```bash
 npm install
-npm run migrate
-npm run seed
-npm run dev
 ```
 
-### ML Service
-```bash
-cd ml-service
-python -m venv .venv
-.\.venv\Scripts\activate  # Windows
-# source .venv/bin/activate  # macOS/Linux
-pip install -r requirements.txt
-python app.py
-```
-
-### Frontend
+3. Install frontend dependencies
 ```bash
 cd client
 npm install
+cd ..
+```
+
+4. Install ML service dependencies
+```bash
+cd ml-service
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cd ..
+```
+
+5. Set up environment variables
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+6. Initialize the database
+```bash
+npm run migrate
+npm run create-admin
+```
+
+### Running the Application
+
+#### Option 1: Run All Services Together
+```bash
 npm run dev
 ```
+This starts both backend and frontend concurrently.
+
+#### Option 2: Run Services Separately
+
+**Backend Server:**
+```bash
+npm run dev:backend
+```
+Runs on `http://localhost:3000`
+
+**Frontend Development Server:**
+```bash
+npm run dev:client
+```
+Runs on `http://localhost:5173`
+
+**ML Service:**
+```bash
+cd ml-service
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+python app.py
+```
+Runs on `http://localhost:5001`
 
 ### Access Points
 
-- **Doctor UI:** http://localhost:5173/doctor
-- **Government UI:** http://localhost:5173/government
+- **Doctor Dashboard:** `http://localhost:5173/doctor`
+- **Nurse Dashboard:** `http://localhost:5173/nurse`
+- **Admin Panel:** `http://localhost:5173/admin`
+- **Government Dashboard:** `http://localhost:5173/government`
+- **API Documentation:** `http://localhost:3000/api`
+
+### Default Credentials
+
+After running `npm run create-admin`, use:
+- Username: (set during creation)
+- Password: (set during creation)
 
 ---
 
-## Database Notes
+## Production Deployment
 
-- SQLite database is committed for reproducible demos
-- Some hosting providers use ephemeral storage; runtime writes may not persist
-- For production, use managed PostgreSQL and set `DATABASE_URL`
+### Environment Variables
+
+Required environment variables for production:
+
+```env
+NODE_ENV=production
+PORT=3000
+DATABASE_URL=postgresql://user:password@host:port/database
+JWT_SECRET=your-secret-key
+ML_SERVICE_URL=https://your-ml-service.com
+```
+
+### Build Process
+
+```bash
+# Build backend
+npm run build:backend
+
+# Build frontend
+npm run build:client
+
+# Start production server
+npm start
+```
+
+### Database Migration
+
+The system automatically runs migrations on startup in production. For manual migration:
+
+```bash
+npm run migrate
+```
 
 ---
 
-## Roadmap
+## Database Schema
 
-### Short Term
-- [ ] PostgreSQL migration with CI-backed migrations
-- [ ] AI calibration and evaluation dashboards
-- [ ] Expanded audit logging
+### Key Tables
 
-### Medium Term
-- [ ] Clinical validation with de-identified hospital data
-- [ ] Pilot deployment with partner hospitals
-- [ ] Government system integrations
-- [ ] Performance hardening and SSO
+- **users**: Staff members with role-based permissions
+- **patients**: Patient demographic and clinical information
+- **triage_assessments**: Historical triage scores and reasoning
+- **vital_signs**: Time-series vital sign measurements
+- **hospitals**: Hospital registry with capacity information
+- **ai_predictions**: ML model predictions with confidence scores and explanations
+
+---
+
+## Machine Learning Models
+
+### Deterioration Prediction Model
+- **Input Features**: Vital signs, age, triage category, symptoms
+- **Output**: Risk score (0-100), probability, time horizon, confidence
+- **Model Type**: Ensemble (Random Forest + Gradient Boosting)
+- **Explainability**: Feature importance scores and clinical reasoning
+
+### Surge Forecasting Model
+- **Input Features**: Historical arrival patterns, time of day, day of week
+- **Output**: Hourly predictions with confidence intervals
+- **Model Type**: Time series forecasting with seasonal decomposition
+- **Alerts**: Automatic threshold-based surge detection
+
+### NLP Symptom Extractor
+- **Input**: Free-text clinical notes
+- **Output**: Structured symptom list with severity
+- **Approach**: Rule-based extraction with medical terminology matching
 
 ---
 
 ## Contributing
 
-1. Fork the repository and create a feature branch
-2. Open an issue before major changes
-3. **Do not commit secrets or `.env` files**
+We welcome contributions to improve TRIAGELOCK. Please follow these guidelines:
 
-We welcome contributions! Please feel free to submit pull requests or open issues for bugs and feature requests.
+1. Fork the repository and create a feature branch
+2. Follow the existing code style and conventions
+3. Write tests for new features
+4. Ensure all tests pass before submitting
+5. Do not commit sensitive data, credentials, or `.env` files
+6. Submit a pull request with a clear description of changes
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 ---
 
-**Made with 💚 by team A.I.C.A**
+## Team
+
+Developed by Team A.I.C.A

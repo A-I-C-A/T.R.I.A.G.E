@@ -9,7 +9,8 @@ import {
   Bed,
   Activity,
   AlertTriangle,
-  Download
+  Download,
+  UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -315,6 +316,7 @@ export default function AdminPanel() {
             <TabsList className="bg-card/50 border border-border/50">
               <TabsTrigger value="dashboard" className="gap-2"><LayoutDashboard className="w-4 h-4" /> Dashboard</TabsTrigger>
               <TabsTrigger value="management" className="gap-2"><Building className="w-4 h-4" /> Management</TabsTrigger>
+              <TabsTrigger value="staff" className="gap-2"><UserPlus className="w-4 h-4" /> Staff Registration</TabsTrigger>
               <TabsTrigger value="reports" className="gap-2"><FileBarChart className="w-4 h-4" /> Reports</TabsTrigger>
               <TabsTrigger value="alerts" className="gap-2"><Bell className="w-4 h-4" /> Alerts</TabsTrigger>
               <TabsTrigger value="history" className="gap-2"><Activity className="w-4 h-4" /> History</TabsTrigger>
@@ -456,6 +458,247 @@ export default function AdminPanel() {
                         Initiate Recall
                       </Button>
                     </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="staff" className="mt-0">
+              <div className="grid grid-cols-2 gap-6">
+                {/* Register Doctor */}
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <UserPlus className="w-5 h-5" />
+                      Register Doctor
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form className="space-y-4" onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      toast.success(`Doctor ${formData.get('doctorName')} registered successfully!`);
+                      e.currentTarget.reset();
+                    }}>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Full Name</label>
+                        <input
+                          name="doctorName"
+                          type="text"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                          placeholder="Dr. John Smith"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Email</label>
+                        <input
+                          name="doctorEmail"
+                          type="email"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                          placeholder="doctor@hospital.com"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">License Number</label>
+                        <input
+                          name="licenseNumber"
+                          type="text"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                          placeholder="MED-12345"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Specialty</label>
+                        <select
+                          name="specialty"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                        >
+                          <option value="">Select Specialty</option>
+                          <option value="Trauma">Trauma Surgery</option>
+                          <option value="Cardiology">Cardiology</option>
+                          <option value="Pulmonology">Pulmonology</option>
+                          <option value="Neurology">Neurology</option>
+                          <option value="Orthopedics">Orthopedics</option>
+                          <option value="Pediatrics">Pediatrics</option>
+                          <option value="General">General Medicine</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Phone Number</label>
+                        <input
+                          name="phone"
+                          type="tel"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                          placeholder="+1 234 567 8900"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Years of Experience</label>
+                        <input
+                          name="experience"
+                          type="number"
+                          min="0"
+                          max="50"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                          placeholder="5"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Employment Type</label>
+                        <select
+                          name="employmentType"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                        >
+                          <option value="">Select Type</option>
+                          <option value="full-time">Full-time</option>
+                          <option value="part-time">Part-time</option>
+                          <option value="contract">Contract</option>
+                        </select>
+                      </div>
+
+                      <Button type="submit" className="w-full">
+                        Register Doctor
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+
+                {/* Register Nurse */}
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <UserPlus className="w-5 h-5" />
+                      Register Nurse
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form className="space-y-4" onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      toast.success(`Nurse ${formData.get('nurseName')} registered successfully!`);
+                      e.currentTarget.reset();
+                    }}>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Full Name</label>
+                        <input
+                          name="nurseName"
+                          type="text"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                          placeholder="Jane Doe"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Email</label>
+                        <input
+                          name="nurseEmail"
+                          type="email"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                          placeholder="nurse@hospital.com"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">License Number</label>
+                        <input
+                          name="nurseLicenseNumber"
+                          type="text"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                          placeholder="RN-12345"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Department</label>
+                        <select
+                          name="department"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                        >
+                          <option value="">Select Department</option>
+                          <option value="Emergency">Emergency Department</option>
+                          <option value="ICU">Intensive Care Unit</option>
+                          <option value="Pediatrics">Pediatrics</option>
+                          <option value="Surgery">Surgery</option>
+                          <option value="General Ward">General Ward</option>
+                          <option value="Triage">Triage</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Phone Number</label>
+                        <input
+                          name="nursePhone"
+                          type="tel"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                          placeholder="+1 234 567 8900"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Years of Experience</label>
+                        <input
+                          name="nurseExperience"
+                          type="number"
+                          min="0"
+                          max="50"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                          placeholder="3"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Certification Level</label>
+                        <select
+                          name="certificationLevel"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                        >
+                          <option value="">Select Level</option>
+                          <option value="RN">Registered Nurse (RN)</option>
+                          <option value="LPN">Licensed Practical Nurse (LPN)</option>
+                          <option value="CNS">Clinical Nurse Specialist (CNS)</option>
+                          <option value="NP">Nurse Practitioner (NP)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Shift Preference</label>
+                        <select
+                          name="shiftPreference"
+                          required
+                          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                        >
+                          <option value="">Select Shift</option>
+                          <option value="day">Day Shift (6 AM - 2 PM)</option>
+                          <option value="evening">Evening Shift (2 PM - 10 PM)</option>
+                          <option value="night">Night Shift (10 PM - 6 AM)</option>
+                          <option value="rotating">Rotating</option>
+                        </select>
+                      </div>
+
+                      <Button type="submit" className="w-full">
+                        Register Nurse
+                      </Button>
+                    </form>
                   </CardContent>
                 </Card>
               </div>
