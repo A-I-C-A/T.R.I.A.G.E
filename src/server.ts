@@ -22,7 +22,25 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 
 app.use(helmet({
-  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      imgSrc: [
+        "'self'", 
+        "data:", 
+        "blob:",
+        "https://*.tile.openstreetmap.org",
+        "https://unpkg.com"
+      ],
+      connectSrc: ["'self'", "ws:", "wss:"],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
 }));
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
