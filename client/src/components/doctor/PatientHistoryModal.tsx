@@ -25,8 +25,10 @@ export function PatientHistoryModal({ patientId, onClose }: PatientHistoryModalP
   const fetchHistory = async () => {
     try {
       const token = localStorage.getItem('token');
+      const apiUrl = import.meta.env.VITE_API_URL || 
+        (import.meta.env.MODE === 'production' ? '' : 'http://localhost:3000');
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/patients/${patientId}/history`,
+        `${apiUrl}/api/patients/${patientId}/history`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -45,8 +47,10 @@ export function PatientHistoryModal({ patientId, onClose }: PatientHistoryModalP
     setSavingNotes(true);
     try {
       const token = localStorage.getItem('token');
+      const apiUrl = import.meta.env.VITE_API_URL || 
+        (import.meta.env.MODE === 'production' ? '' : 'http://localhost:3000');
       await axios.put(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/patients/${patientId}/doctor-notes`,
+        `${apiUrl}/api/patients/${patientId}/doctor-notes`,
         { notes: doctorNotes },
         {
           headers: { Authorization: `Bearer ${token}` }
